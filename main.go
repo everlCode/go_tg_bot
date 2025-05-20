@@ -2,17 +2,18 @@ package main
 
 import (
 	"database/sql"
+	"go-tg-bot/internal/bot"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	_ "github.com/mattn/go-sqlite3"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+
 	"github.com/joho/godotenv"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	db, err := sql.Open("sqlite3", "./db/db.db") // Файл будет внутри контейнера
+	db, err := sql.Open("sqlite3", "./db/db.db")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -20,22 +21,9 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, continuing without it")
 	}
-	db.Exec(`CREATE TABLE IF NOT EXISTS users (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		telegram_id INTEGER UNIQUE,
-		username TEXT);`)
+	db.Close()
 
-	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
-
-	if botToken == "" {
-		log.Fatal("TELEGRAM_BOT_TOKEN is not set")
-	}
-
-	bot, err := tgbotapi.NewBotAPI(botToken)
-	if err != nil {
-		log.Panic(err)
-	}
-	log.Printf("Бот запущен: %s", bot.Self.UserName)
+	bot.NewBot()
 
 	// webhookURL := os.Getenv("WEBHOOK_URL")
 	// wh := tgbotapi.NewWebhook(webhookURL)
