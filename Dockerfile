@@ -1,17 +1,15 @@
-# Используем официальный образ golang
-FROM golang:1.24-alpine
+FROM golang:1.24
 
-# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем исходники
-COPY . .
+ENV GOFLAGS="-buildvcs=false"
 
+RUN go install github.com/air-verse/air@latest
+
+COPY . .
 # Скачиваем зависимости и собираем приложение
 RUN go mod tidy && go build -o main .
 
-# Открываем порт
-EXPOSE 8080
+RUN mkdir -p /app/tmp
 
-# Запускаем приложение
-CMD ["./main"]
+CMD ["air"]

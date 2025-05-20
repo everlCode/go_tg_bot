@@ -1,8 +1,8 @@
 services:
-  go-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  bot:
+    build: .
+    container_name: bot
     ports:
       - "8080:8080"
-    restart: unless-stopped
+    volumes:
+      - .:/app
