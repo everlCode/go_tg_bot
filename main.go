@@ -1,19 +1,29 @@
 package main
 
 import (
+	"database/sql"
 	"io"
 	"log"
 	"net/http"
 	"os"
-
+	_ "github.com/mattn/go-sqlite3"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/joho/godotenv"
 )
 
 func main() {
+	db, err := sql.Open("sqlite3", "./db/db.db") // Файл будет внутри контейнера
+	if err != nil {
+		log.Fatal(err)
+	}
+	// log.Printf(db.Ping().Error())
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, continuing without it")
 	}
+	db.Exec(`CREATE TABLE IF NOT EXISTS users (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		telegram_id INTEGER UNIQUE,
+		username TEXT);`)
 
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 
