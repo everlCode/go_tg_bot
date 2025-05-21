@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"go-tg-bot/internal/bot"
-	"io"
+	"go-tg-bot/internal/handler"
 	"log"
 	"net/http"
 	"os"
@@ -23,7 +23,8 @@ func main() {
 	}
 	db.Close()
 
-	bot.NewBot()
+	wh := handler.CreateHandler()
+	b := bot.NewBot(wh)
 
 	// webhookURL := os.Getenv("WEBHOOK_URL")
 	// wh := tgbotapi.NewWebhook(webhookURL)
@@ -36,19 +37,7 @@ func main() {
 	// 	log.Fatalf("Ошибка установки вебхука: %v", err)
 	// }
 
-	http.HandleFunc("/bot", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			log.Printf("Ошибка чтения тела запроса: %v", err)
-			http.Error(w, "Ошибка", http.StatusInternalServerError)
-			return
-		}
-		// Логируем тело как строку
-		log.Printf("Тело запроса: %s", string(body))
-		w.Write([]byte("Hello, world"))
-	})
+	http.HandleFunc("/bot", b.HandleWebHook)
 
 	port := os.Getenv("PORT")
 	if port == "" {
