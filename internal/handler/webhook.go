@@ -16,5 +16,7 @@ func CreateHandler() func(tgbotapi.Update) {
 }
 
 func (wh *WebHookHandler) Handle(u tgbotapi.Update) {
-	log.Println(u.Message)
+	log.Println(u.Message.From.ID)
+	log.Println(u.Message.From.FirstName)
+	log.Println(u.Message.From.LastName)
 }
