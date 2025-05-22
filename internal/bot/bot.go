@@ -36,11 +36,16 @@ func NewBot(h func(update tgbotapi.Update)) *Bot {
 }
 
 func (b *Bot) HandleWebHook(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost || r.Header.Get("Content-Type") != "application/json" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	body, _ := io.ReadAll(r.Body)
 	defer r.Body.Close()
 
 	var update tgbotapi.Update
-	_ = json.Unmarshal(body, &update)
+	json.Unmarshal(body, &update)
 
 	go b.handler(update) // async
 	w.WriteHeader(http.StatusOK)
