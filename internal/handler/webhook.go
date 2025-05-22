@@ -42,7 +42,7 @@ func (wh *WebHookHandler) Handle(u tgbotapi.Update) {
 			log.Fatal(err)
 		}
 	} else {
-		_, err = db.Exec("INSERT INTO users (name, telegram_id) VALUES (?, ?)", name, id)
+		_, err = db.Exec("INSERT INTO users (name, telegram_id, message_count) VALUES (?, ?, ?)", name, id, 1)
 		if err != nil {
 			log.Fatal(err)
 		}
