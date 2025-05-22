@@ -19,28 +19,32 @@ func CreateHandler() func(tgbotapi.Update) {
 
 func (wh *WebHookHandler) Handle(u tgbotapi.Update) {
 	log.Println(u.Message.From.ID)
-	var id int = u.Message.From.ID
-	var name string = u.Message.From.FirstName
-	log.Println(u.Message.From.FirstName)
-	log.Println(u.Message.From.LastName)
+	id := u.Message.From.ID
+	name := u.Message.From.FirstName
+	log.Println(name, u.Message.From.LastName)
+
 	db, err := sql.Open("sqlite3", "./db/db.db")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	row, er := db.Query("select * from users where telegram_id = ?", id)
-	if er != nil {
-		log.Fatal(er)
+	var exists bool
+	err = db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE telegram_id = ?)", id).Scan(&exists)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	if row.Next() {
-		log.Println("Пользователь найден")
+	if exists {
+		log.Print("exist")
+		_, err = db.Exec("UPDATE users SET message_count = message_count + 1 WHERE telegram_id = ?", id)
+		if err != nil {
+			log.Fatal(err)
+		}
 	} else {
-		_, e := db.Exec("INSERT INTO users (name, telegram_id) VALUES(?,?)", name, id)
-		if e != nil {
-			log.Print(e )
-			log.Fatal("here")
+		_, err = db.Exec("INSERT INTO users (name, telegram_id) VALUES (?, ?)", name, id)
+		if err != nil {
+			log.Fatal(err)
 		}
 	}
 }

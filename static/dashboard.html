@@ -23,14 +23,14 @@
         <tr>
           <th>ID</th>
           <th>Имя</th>
-          <th>Рейтинг</th>
+          <th>Кол-во сообщений</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="user in users" :key="user.id">
           <td>{{ user.id }}</td>
           <td>{{ user.name }}</td>
-          <td>{{ user.rating }}</td>
+          <td>{{ user.message_count }}</td>
         </tr>
       </tbody>
     </table>

@@ -14,9 +14,9 @@ import (
 )
 
 type User struct {
-	ID     int    `json:"id"`
-	Name   string `json:"name"`
-	Rating int    `json:"rating"`
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	MessageCount int    `json:"message_count"`
 }
 
 func main() {
@@ -52,27 +52,28 @@ func main() {
 		}
 		defer db.Close()
 
-		rows, err := db.Query("select id, name, rating from users")
+		rows, err := db.Query("select id, name, message_count from users")
 		if err != nil {
 			log.Fatal(err)
 		}
+		defer rows.Close()
 
 		var id int
 		var name string
-		var rating int
+		var message_count int
+
 		var users []User
-		log.Print("ttttxx")
 		for rows.Next() {
-			if err := rows.Scan(&id, &name, &rating); err != nil {
+			if err := rows.Scan(&id, &name, &message_count); err != nil {
 				http.Error(w, "Row scan error", http.StatusInternalServerError)
 				log.Println("Row scan error:", err)
 				return
 			}
-			
+
 			users = append(users, User{
-				ID:     id,
-				Name:   name,
-				Rating: rating,
+				ID:           id,
+				Name:         name,
+				MessageCount: message_count,
 			})
 		}
 		w.Header().Set("Content-Type", "application/json")
