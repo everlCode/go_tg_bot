@@ -52,7 +52,7 @@ func main() {
 		}
 		defer db.Close()
 
-		rows, err := db.Query("select id, name, message_count from users")
+		rows, err := db.Query("select id, name, message_count from users ORDER BY message_count DESC")
 		if err != nil {
 			log.Fatal(err)
 		}

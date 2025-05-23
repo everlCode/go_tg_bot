@@ -1,24 +1,106 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <title>Dashboard</title>
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
   <style>
-    table {
-      width: 50%;
-      border-collapse: collapse;
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #eef2f3, #cfd9df);
+      margin: 0;
+      padding: 40px;
     }
+
+    #app {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 30px 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      font-weight: 600;
+      font-size: 28px;
+      color: #2c3e50;
+      margin-bottom: 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'Roboto Mono', monospace;
+      background-color: #fff;
+      border: 2px solid #3498db;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    thead {
+      background: #3498db;
+      color: white;
+    }
+
     th, td {
-      padding: 8px;
-      border: 1px solid #ddd;
+      padding: 14px 18px;
+      border-bottom: 1px solid #ecf0f1;
+      text-align: left;
+      position: relative;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #f4faff;
+    }
+
+    tbody tr:hover {
+      background-color: #eaf6ff;
+    }
+
+    /* Цвета топ 3 */
+    tbody tr.top-1 {
+      background-color: #fff8dc; /* светло-золотой */
+    }
+    tbody tr.top-2 {
+      background-color: #f0f0f0; /* светло-серебряный */
+    }
+    tbody tr.top-3 {
+      background-color: #f5f0e6; /* светло-бронзовый */
+    }
+
+    /* Корона слева от имени */
+    .name-cell {
+      position: relative;
+      padding-left: 30px; /* место для короны */
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .crown {
+      position: absolute;
+      left: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      color: #f39c12;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    p {
+      text-align: center;
+      font-size: 16px;
+      color: #888;
     }
   </style>
 </head>
 <body>
   <div id="app">
-    <h2>Пользователи</h2>
-    <table>
+    <h2>Свечинские парни</h2>
+    <table v-if="users.length">
       <thead>
         <tr>
           <th>ID</th>
@@ -27,13 +109,21 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="user in users" :key="user.id">
+        <tr 
+          v-for="(user, index) in users" 
+          :key="user.id" 
+          :class="topClass(index)"
+        >
           <td>{{ user.id }}</td>
-          <td>{{ user.name }}</td>
+          <td class="name-cell">
+            <span v-if="index < 1" class="crown">👑</span>
+            {{ user.name }}
+          </td>
           <td>{{ user.message_count }}</td>
         </tr>
       </tbody>
     </table>
+    <p v-else>Загрузка пользователей...</p>
   </div>
 
   <script>
@@ -42,15 +132,22 @@
     createApp({
       data() {
         return {
-          users: []
+          users: [],
         }
       },
       mounted() {
         fetch('/api/users')
           .then(res => res.json())
           .then(data => {
-            this.users = data
+            // Сортируем по убыванию message_count
+            this.users = data.sort((a, b) => b.message_count - a.message_count)
           })
+      },
+      methods: {
+        topClass(index) {
+          if(index === 0) return 'top-1'
+          return ''
+        }
       }
     }).mount('#app')
   </script>
