@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"go-tg-bot/internal/bot"
 	"go-tg-bot/internal/handler"
+	user_repository "go-tg-bot/internal/repository"
 	"log"
 	"net/http"
 	"os"
@@ -25,9 +26,15 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, continuing without it")
 	}
+	db, err := sql.Open("sqlite3", "./db/db.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
-	wh := handler.CreateHandler()
-	b := bot.NewBot(wh)
+	userRepository := user_repository.NewRepository(db)
+	webHook := handler.CreateHandler(&userRepository)
+	b := bot.NewBot(webHook)
 
 	// webhookURL := os.Getenv("WEBHOOK_URL")
 	// wh := tgbotapi.NewWebhook(webhookURL)
@@ -86,5 +93,4 @@ func main() {
 	}
 
 	log.Fatal(http.ListenAndServe(":"+port, nil))
-
 }
