@@ -1,4 +1,3 @@
 .env
-./db/db.db
-tmp/build-errors.log
-tmp/main
+db/db.db
+tmp/
