@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/rand"
 	"database/sql"
 	"encoding/json"
 	"go-tg-bot/internal/bot"
@@ -52,7 +53,7 @@ func main() {
 
 	http.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {
 		rows := userRepository.GetTopUsers()
-
+		userRepository.CreateUser(23234, "dfdfdf", 45)
 		var id int
 		var name string
 		var message_count int

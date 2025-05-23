@@ -1,9 +1,0 @@
-services:
-  bot:
-    build: .
-    container_name: bot
-    ports:
-      - "8080:8080"
-    volumes:
-      - .:/app
-       ./db:/app/db
