@@ -21,8 +21,6 @@ type User struct {
 }
 
 func main() {
-
-	// log.Printf(db.Ping().Error())
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, continuing without it")
 	}
@@ -53,17 +51,7 @@ func main() {
 	})
 
 	http.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {
-		db, err := sql.Open("sqlite3", "./db/db.db")
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer db.Close()
-
-		rows, err := db.Query("select id, name, message_count from users ORDER BY message_count DESC")
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer rows.Close()
+		rows := userRepository.GetTopUsers()
 
 		var id int
 		var name string

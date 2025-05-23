@@ -33,13 +33,26 @@ func (ur *UserRepository) UserExist(telegram_id int) bool {
 func (ur *UserRepository) CreateUser(telegram_id int, name string, message_count int) {
 	_, err := ur.db.Exec("INSERT INTO users (name, telegram_id, message_count) VALUES (?, ?, ?)", telegram_id, name, message_count)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 }
 
 func (ur *UserRepository) AddUserMessageCount(telegram_id int) {
 	_, err := ur.db.Exec("UPDATE users SET message_count = message_count + 1 WHERE telegram_id = ?", telegram_id)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 }
+
+func (ur *UserRepository) GetTopUsers() *sql.Rows {
+	rows, err := ur.db.Query("select id, name, message_count from users ORDER BY message_count DESC")
+	defer rows.Close()
+	if err != nil {
+		log.Println("error:", err)
+	}
+
+	return rows
+}
+
+
+

@@ -45,7 +45,10 @@ func (b *Bot) HandleWebHook(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	var update tgbotapi.Update
-	json.Unmarshal(body, &update)
+	error := json.Unmarshal(body, &update)
+	if (error != nil) {
+		log.Print(error)
+	}
 
 	go b.handler(update) // async
 	w.WriteHeader(http.StatusOK)
