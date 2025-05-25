@@ -6,11 +6,11 @@ WORKDIR /app
 
 RUN go install github.com/githubnemo/CompileDaemon@latest
 # Копируем только файлы модулей для кеша зависимостей
-COPY go_tg_bot/go.mod go_tg_bot/go.sum ./
+COPY app/go.mod app/go.sum ./
 RUN go mod download
 
 # Копируем весь исходный код проекта из go_tg_bot
-COPY go_tg_bot/. .
+COPY app/. .
 
 RUN go build -o bot .
 

@@ -8,8 +8,8 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./go_tg_bot/db:/app/db
-      - ./go_tg_bot/static:/app/static
+      - ./app/db:/app/db
+      - ./app/static:/app/static
     env_file:
       - .env
 
