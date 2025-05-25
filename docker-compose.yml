@@ -1,0 +1,15 @@
+services:
+  bot:
+    build: .
+    container_name: gobot
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    ports:
+      - "80:80"
+    volumes:
+      - ./go_tg_bot/db:/app/db
+      - ./go_tg_bot/static:/app/static
+    env_file:
+      - .env
+

@@ -47,12 +47,13 @@ func main() {
 
 	http.HandleFunc("/bot", b.HandleWebHook)
 	http.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("4444444")
 		http.ServeFile(w, r, "./static/dashboard.html")
 	})
 
 	http.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {
 		rows := userRepository.GetTopUsers()
-		userRepository.CreateUser(23234, "dfdfdf", 45)
+		// userRepository.CreateUser(23234, "dfdfdf", 45)
 		var id int
 		var name string
 		var message_count int
