@@ -47,12 +47,12 @@ func main() {
 
 	http.HandleFunc("/bot", b.HandleWebHook)
 	http.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("4444444")
 		http.ServeFile(w, r, "./static/dashboard.html")
 	})
 
 	http.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {
 		rows := userRepository.GetTopUsers()
+		defer rows.Close()
 		// userRepository.CreateUser(23234, "dfdfdf", 45)
 		var id int
 		var name string
@@ -72,13 +72,15 @@ func main() {
 				MessageCount: message_count,
 			})
 		}
+
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(users)
+		log.Printf("Returned %d users\n", len(users))
 	})
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "80"
 	}
 
 	log.Fatal(http.ListenAndServe(":"+port, nil))

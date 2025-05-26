@@ -46,7 +46,6 @@ func (ur *UserRepository) AddUserMessageCount(telegram_id int) {
 
 func (ur *UserRepository) GetTopUsers() *sql.Rows {
 	rows, err := ur.db.Query("select id, name, message_count from users ORDER BY message_count DESC")
-	defer rows.Close()
 	if err != nil {
 		log.Println("error:", err)
 	}

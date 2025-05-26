@@ -4,7 +4,6 @@ FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
-RUN go install github.com/githubnemo/CompileDaemon@latest
 # Копируем только файлы модулей для кеша зависимостей
 COPY app/go.mod app/go.sum ./
 RUN go mod download

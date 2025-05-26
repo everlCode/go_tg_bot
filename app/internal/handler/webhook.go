@@ -21,11 +21,12 @@ func CreateHandler(ur *user_repository.UserRepository) func(tgbotapi.Update) {
 }
 
 func (wh *WebHookHandler) Handle(u tgbotapi.Update) {
-	log.Println(u.Message.From.ID)
+	if u.Message == nil || u.Message.From == nil {
+		log.Print(u.Message)
+		return
+	}
 	id := u.Message.From.ID
 	name := u.Message.From.FirstName
-	log.Println(name, u.Message.From.LastName)
-
 	userExist := wh.userRepository.UserExist(id)
 
 	if userExist {

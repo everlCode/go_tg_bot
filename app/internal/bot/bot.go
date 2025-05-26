@@ -40,16 +40,16 @@ func (b *Bot) HandleWebHook(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-
+	
 	body, _ := io.ReadAll(r.Body)
 	defer r.Body.Close()
 
 	var update tgbotapi.Update
 	error := json.Unmarshal(body, &update)
-	if (error != nil) {
+	if error != nil {
 		log.Print(error)
 	}
-
+	
 	go b.handler(update) // async
 	w.WriteHeader(http.StatusOK)
 }

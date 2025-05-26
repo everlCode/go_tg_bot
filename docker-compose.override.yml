@@ -1,0 +1,12 @@
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./app:/app
+      - ./app/air.toml:/app/air.toml
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+    ports:
+      - "80:80"

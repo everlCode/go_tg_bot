@@ -1,0 +1,24 @@
+FROM golang:1.24-alpine
+
+ENV CGO_ENABLED=1 \
+    GOOS=linux \
+    GOARCH=amd64 \
+    PATH="/go/bin:$PATH"
+
+# Установка зависимостей и air
+RUN apk update && apk add --no-cache gcc musl-dev sqlite-dev curl git \
+  && curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh | sh -s -- -b /go/bin
+
+# Создаём рабочую директорию
+WORKDIR /app
+
+# Копируем конфигурацию air
+# COPY air.toml /app/air.toml
+COPY app/go.mod app/go.sum ./
+RUN go mod download
+
+# Копируем исходники (опционально, если нужно сразу)
+COPY app/ /app
+
+# Команда запуска через air
+CMD ["air", "-c", "/app/air.toml"]
