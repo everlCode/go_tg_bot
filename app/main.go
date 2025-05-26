@@ -11,6 +11,7 @@ import (
 	"go-tg-bot/internal/handler"
 	user_repository "go-tg-bot/internal/repository"
 	"strings"
+
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -91,9 +92,14 @@ func main() {
 			TLSConfig: certManager.TLSConfig(),
 		}
 
-		// Запускаем HTTPS сервер
-		go http.ListenAndServe(":80", certManager.HTTPHandler(nil)) // HTTP для получения сертификата
-		log.Println("Running in production mode on https://", domain)
+		go func() {
+			log.Println("Starting HTTP server on port 80 for Let's Encrypt challenge")
+			if err := http.ListenAndServe(":80", certManager.HTTPHandler(nil)); err != nil {
+				log.Fatalf("HTTP server failed: %v", err)
+			}
+		}()
+
+		log.Println("Starting HTTPS server on port 443")
 		log.Fatal(server.ListenAndServeTLS("", ""))
 	} else {
 		// Локальный режим — обычный HTTP
