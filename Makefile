@@ -18,11 +18,11 @@ build-prod:
 
 # Запуск для девелопмента
 up-dev:
-	COMPOSE_FILE=$(COMPOSE_FILE_DEV) docker compose up -d
+	docker compose -d
 
 # Запуск для продакшена
 up-prod:
-	COMPOSE_FILE=$(COMPOSE_FILE) docker compose up -d
+	docker compose -f docker-compose.yml up -d
 
 # Остановка и удаление контейнеров
 down:

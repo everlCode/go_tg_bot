@@ -1,8 +1,11 @@
-FROM golang:1.24-alpine AS builder
+FROM golang:1.24-bullseye AS builder
+# или
+# FROM golang:1.24-bookworm AS builder
+
+RUN apt-get update && apt-get install -y gcc musl-dev sqlite3 libsqlite3-dev
 
 WORKDIR /app
 
-RUN apk update && apk add --no-cache gcc musl-dev sqlite-dev
 # Копируем только файлы модулей для кеша зависимостей
 COPY app/go.mod app/go.sum ./
 RUN go mod download
@@ -13,9 +16,11 @@ COPY app/. .
 # Собираем бинарник
 RUN go build -o bot .
 
-FROM alpine:3.18
+FROM debian:bullseye-slim
 
 WORKDIR /app
+
+RUN apt-get update && apt-get install -y ca-certificates
 
 # Копируем собранный бинарник
 COPY --from=builder /app/bot .
