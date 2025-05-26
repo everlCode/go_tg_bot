@@ -10,7 +10,7 @@ import (
 	"go-tg-bot/internal/bot"
 	"go-tg-bot/internal/handler"
 	user_repository "go-tg-bot/internal/repository"
-
+	"strings"
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -74,7 +74,7 @@ func main() {
 	}
 
 	if env == "production" {
-		domain := os.Getenv("DOMAIN")
+		domain := strings.TrimSpace(os.Getenv("DOMAIN"))
 		if domain == "" {
 			log.Fatal("DOMAIN must be set in production")
 		}

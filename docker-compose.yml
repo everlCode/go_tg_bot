@@ -12,6 +12,7 @@ services:
     volumes:
       - ./db:/app/db
       - ./app/static:/app/static
+      - ./certs:/app/certs
     env_file:
       - .env
 

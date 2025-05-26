@@ -25,5 +25,5 @@ up-prod:
 	docker compose -f docker-compose.yml up -d
 
 # Остановка и удаление контейнеров
-down:
+stop:
 	docker compose down
