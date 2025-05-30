@@ -10,10 +10,8 @@ import (
 	"go-tg-bot/internal/bot"
 	"go-tg-bot/internal/handler"
 	user_repository "go-tg-bot/internal/repository"
-	"strings"
 
 	"github.com/joho/godotenv"
-	"golang.org/x/crypto/acme/autocert"
 )
 
 type User struct {
@@ -75,32 +73,16 @@ func main() {
 	}
 
 	if env == "production" {
-		domain := strings.TrimSpace(os.Getenv("DOMAIN"))
-		if domain == "" {
-			log.Fatal("DOMAIN must be set in production")
-		}
+		// Пути к сертификатам
+		certFile := os.Getenv("TLS_CERT") // например: /certs/everl.cert
+		keyFile := os.Getenv("TLS_KEY")   // например: /certs/everl.key
 
-		certManager := autocert.Manager{
-			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist(domain),
-			Cache:      autocert.DirCache("certs"), // папка для хранения сертификатов
+		if certFile == "" || keyFile == "" {
+			log.Fatal("TLS_CERT and TLS_KEY must be set in production")
 		}
-
-		server := &http.Server{
-			Addr:      ":443",
-			Handler:   nil,
-			TLSConfig: certManager.TLSConfig(),
-		}
-
-		go func() {
-			log.Println("Starting HTTP server on port 80 for Let's Encrypt challenge")
-			if err := http.ListenAndServe(":80", certManager.HTTPHandler(nil)); err != nil {
-				log.Fatalf("HTTP server failed: %v", err)
-			}
-		}()
 
 		log.Println("Starting HTTPS server on port 443")
-		log.Fatal(server.ListenAndServeTLS("", ""))
+		log.Fatal(http.ListenAndServeTLS(":443", certFile, keyFile, nil))
 	} else {
 		// Локальный режим — обычный HTTP
 		log.Println("Running in local mode on http://localhost:" + port)
