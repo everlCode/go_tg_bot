@@ -74,8 +74,8 @@ func main() {
 
 	if env == "production" {
 		// Пути к сертификатам
-		certFile := os.Getenv("TSL_CERT")
-		keyFile := os.Getenv("TSL_KEY")
+		certFile := os.Getenv("TLS_CERT")
+		keyFile := os.Getenv("TLS_KEY")
 
 		if certFile == "" || keyFile == "" {
 			log.Fatal("TLS_CERT and TLS_KEY must be set in production")
