@@ -31,7 +31,7 @@ func (ur *UserRepository) UserExist(telegram_id int) bool {
 }
 
 func (ur *UserRepository) CreateUser(telegram_id int, name string, message_count int) {
-	_, err := ur.db.Exec("INSERT INTO users (name, telegram_id, message_count) VALUES (?, ?, ?)", telegram_id, name, message_count)
+	_, err := ur.db.Exec("INSERT INTO users (name, telegram_id, message_count) VALUES (?, ?, ?)", name, telegram_id, message_count)
 	if err != nil {
 		log.Print(err)
 	}
