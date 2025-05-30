@@ -20,7 +20,7 @@ FROM debian:bullseye-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y sqlite3
+RUN apt-get update && apt-get install -y sqlite3 ca-certificates
 
 # Копируем собранный бинарник
 COPY --from=builder /app/bot .
