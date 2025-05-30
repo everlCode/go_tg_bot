@@ -13,7 +13,7 @@ services:
     volumes:
       - ./db:/app/db
       - ./app/static:/app/static
-      - /etc/ssl/mycerts:/app/certs
+      - /etc/ssl/mycert:/app/certs
     env_file:
       - .env
 
