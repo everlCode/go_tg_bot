@@ -10,15 +10,10 @@ import (
 	"go-tg-bot/internal/bot"
 	"go-tg-bot/internal/handler"
 	user_repository "go-tg-bot/internal/repository"
+	dashboard_service "go-tg-bot/internal/services"
 
 	"github.com/joho/godotenv"
 )
-
-type User struct {
-	ID           int    `json:"id"`
-	Name         string `json:"name"`
-	MessageCount int    `json:"message_count"`
-}
 
 func main() {
 	// Загружаем переменные окружения
@@ -44,25 +39,11 @@ func main() {
 		http.ServeFile(w, r, "./static/dashboard.html")
 	})
 	http.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {
-		rows := userRepository.GetTopUsers()
-		defer rows.Close()
-
-		var users []User
-		for rows.Next() {
-			var id int
-			var name string
-			var message_count int
-			if err := rows.Scan(&id, &name, &message_count); err != nil {
-				http.Error(w, "Row scan error", http.StatusInternalServerError)
-				log.Println("Row scan error:", err)
-				return
-			}
-			users = append(users, User{ID: id, Name: name, MessageCount: message_count})
-		}
-
+		dashboardService := dashboard_service.NewService(userRepository)
+		users := dashboardService.DashboardData()
+		
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(users)
-		log.Printf("Returned %d users\n", len(users))
 	})
 
 	// Определяем окружение

@@ -8,7 +8,7 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #eef2f3, #cfd9df);
+      background: linear-gradient(135deg, #dfe9f3, #ffffff);
       margin: 0;
       padding: 40px;
     }
@@ -16,17 +16,17 @@
     #app {
       max-width: 900px;
       margin: auto;
-      background: white;
+      background: #ffffff;
       padding: 30px 40px;
       border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
     }
 
     h2 {
       text-align: center;
       font-weight: 600;
       font-size: 28px;
-      color: #2c3e50;
+      color: #34495e;
       margin-bottom: 30px;
     }
 
@@ -34,14 +34,13 @@
       width: 100%;
       border-collapse: collapse;
       font-family: 'Roboto Mono', monospace;
-      background-color: #fff;
-      border: 2px solid #3498db;
+      border: 2px solid #6c5ce7;
       border-radius: 12px;
       overflow: hidden;
     }
 
     thead {
-      background: #3498db;
+      background: #6c5ce7;
       color: white;
     }
 
@@ -53,30 +52,22 @@
     }
 
     tbody tr:nth-child(even) {
-      background-color: #f4faff;
+      background-color: #f8f9fc;
     }
 
     tbody tr:hover {
-      background-color: #eaf6ff;
+      background-color: #e3f2fd;
     }
 
-    /* Цвета топ 3 */
     tbody tr.top-1 {
-      background-color: #fff8dc; /* светло-золотой */
-    }
-    tbody tr.top-2 {
-      background-color: #f0f0f0; /* светло-серебряный */
-    }
-    tbody tr.top-3 {
-      background-color: #f5f0e6; /* светло-бронзовый */
+      background-color: #ffeaa7;
     }
 
-    /* Корона слева от имени */
     .name-cell {
       position: relative;
-      padding-left: 30px; /* место для короны */
+      padding-left: 30px;
       font-weight: 600;
-      color: #2c3e50;
+      color: #2d3436;
     }
 
     .crown {
@@ -85,7 +76,7 @@
       top: 50%;
       transform: translateY(-50%);
       font-size: 18px;
-      color: #f39c12;
+      color: #f1c40f;
       user-select: none;
       pointer-events: none;
     }
@@ -95,6 +86,51 @@
       font-size: 16px;
       color: #888;
     }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 20px;
+      }
+
+      #app {
+        padding: 20px;
+      }
+
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tr {
+        margin-bottom: 16px;
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        padding: 10px;
+        background: white;
+      }
+
+      td {
+        border: none;
+        padding: 8px 12px;
+        position: relative;
+        text-align: left;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        display: block;
+        color: #333;
+        margin-bottom: 4px;
+      }
+
+      .name-cell {
+        padding-left: 36px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -103,9 +139,9 @@
     <table v-if="users.length">
       <thead>
         <tr>
-          <th>ID</th>
           <th>Имя</th>
           <th>Кол-во сообщений</th>
+          <th>Процент</th>
         </tr>
       </thead>
       <tbody>
@@ -114,12 +150,12 @@
           :key="user.id" 
           :class="topClass(index)"
         >
-          <td>{{ user.id }}</td>
-          <td class="name-cell">
-            <span v-if="index < 1" class="crown">👑</span>
+          <td class="name-cell" :data-label="'Имя'">
+            <span v-if="index === 0" class="crown">👑</span>
             {{ user.name }}
           </td>
-          <td>{{ user.message_count }}</td>
+          <td :data-label="'Кол-во сообщений'">{{ user.message_count }}</td>
+          <td :data-label="'Процент'">{{ formatPercent(user.percent) }}%</td>
         </tr>
       </tbody>
     </table>
@@ -139,14 +175,18 @@
         fetch('/api/users')
           .then(res => res.json())
           .then(data => {
-            // Сортируем по убыванию message_count
             this.users = data.sort((a, b) => b.message_count - a.message_count)
           })
       },
       methods: {
         topClass(index) {
-          if(index === 0) return 'top-1'
+          if (index === 0) return 'top-1'
+          if (index === 1) return 'top-2'
+          if (index === 2) return 'top-3'
           return ''
+        },
+        formatPercent(value) {
+          return parseFloat(value).toFixed(1)
         }
       }
     }).mount('#app')

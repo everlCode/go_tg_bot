@@ -9,6 +9,13 @@ type UserRepository struct {
 	db *sql.DB
 }
 
+type User struct {
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	MessageCount int    `json:"message_count"`
+	Percent 	 float64    `json:"percent"`
+}
+
 func NewRepository(db *sql.DB) UserRepository {
 	return UserRepository{
 		db: db,
@@ -45,7 +52,12 @@ func (ur *UserRepository) AddUserMessageCount(telegram_id int) {
 }
 
 func (ur *UserRepository) GetTopUsers() *sql.Rows {
-	rows, err := ur.db.Query("select id, name, message_count from users ORDER BY message_count DESC")
+	rows, err := ur.db.Query(`
+		SELECT id, name, message_count, ROUND((message_count * 100.0) / total.total_messages, 2) AS percent
+		FROM users,
+    	(SELECT SUM(message_count) AS total_messages FROM users) AS total
+		ORDER BY message_count DESC;
+	`)
 	if err != nil {
 		log.Println("error:", err)
 	}

@@ -18,7 +18,7 @@ build-prod:
 
 # Запуск для девелопмента
 up-dev:
-	docker compose -d
+	docker compose up
 
 # Запуск для продакшена
 up-prod:
