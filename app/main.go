@@ -79,6 +79,18 @@ func main() {
 		return nil
 	})
 
+	bot.Handle(telebot.OnReply, func(c telebot.Context) error {
+		msg := c.Message()
+		replyToId := msg.ReplyTo.Sender.ID
+		text := msg.ReplyTo.Text
+		fromId := msg.Sender.ID
+		_, err := db.Exec("INSERT INTO reactions (from_user, to_user, text) VALUES (?, ?, ?)", fromId, replyToId, text)
+		if err != nil {
+			log.Print(err)
+		}
+		return nil
+	})
+
 	// Свой API маршрут
 	mux.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./static/dashboard.html")
