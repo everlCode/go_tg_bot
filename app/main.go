@@ -3,13 +3,17 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	user_repository "go-tg-bot/internal/repository"
-	dashboard_service "go-tg-bot/internal/services"
+	reply_repository "go-tg-bot/internal/repository/reply"
+	user_repository "go-tg-bot/internal/repository/user"
+	dashboard_service "go-tg-bot/internal/services/dashboard"
+	reply_service "go-tg-bot/internal/services/dashboard/replies"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/robfig/cron/v3"
 	"gopkg.in/telebot.v4"
 )
 
@@ -20,7 +24,19 @@ func main() {
 	}
 	defer db.Close()
 
+	c := cron.New()
+	c.AddFunc("@every 1m", func() {
+		_, err := db.Exec("UPDATE users SET action = 3")
+		if err != nil {
+			log.Println(err)
+		}
+		log.Println("Cron: задание выполнено в", time.Now())
+	})
+	c.Start()
+
 	userRepository := user_repository.NewRepository(db)
+	replyRepository := reply_repository.NewRepository(db)
+	replyService := reply_service.NewService(replyRepository, userRepository)
 	// Загружаем переменные окружения
 	bot, err := telebot.NewBot(telebot.Settings{
 		Token:  os.Getenv("TELEGRAM_BOT_TOKEN"),
@@ -43,7 +59,20 @@ func main() {
 
 	// Регистрируем хендлеры
 	bot.Handle("/start", func(c telebot.Context) error {
-		return c.Send("👋 Hello from telebot.v4 webhook!")
+		return c.Send(`👋 Добро пожаловать!
+	
+		Этот бот позволяет оценивать ответы пользователей в беседе и вести рейтинг активности.
+		
+		📌 Основной функционал:
+		— Бот учитывает количество сообщений каждого пользователя.
+		— Вы можете отвечать на чужие сообщения знаком **+** или **-**, чтобы изменить "уважение" (рейтинг) автора.
+		— Каждому пользователю доступно до 3 действий (оценок) в день.
+		— Вся активность отображается на дашборде (веб-интерфейсе).
+		
+		🌐 Панель статистики: everl.ru/dashboard
+		
+		Просто начните общение или поставьте + / - в ответ на сообщение, чтобы участвовать!
+		`)
 	})
 
 	mux := http.NewServeMux()
@@ -60,6 +89,7 @@ func main() {
 	})
 
 	bot.Handle(telebot.OnText, func(c telebot.Context) error {
+		log.Println("text")
 		msg := c.Message()
 		if msg == nil || msg.Sender == nil {
 			log.Print(msg)
@@ -80,14 +110,8 @@ func main() {
 	})
 
 	bot.Handle(telebot.OnReply, func(c telebot.Context) error {
-		msg := c.Message()
-		replyToId := msg.ReplyTo.Sender.ID
-		text := msg.ReplyTo.Text
-		fromId := msg.Sender.ID
-		_, err := db.Exec("INSERT INTO reactions (from_user, to_user, text) VALUES (?, ?, ?)", fromId, replyToId, text)
-		if err != nil {
-			log.Print(err)
-		}
+		replyService.Handle(c)
+
 		return nil
 	})
 
@@ -103,6 +127,16 @@ func main() {
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(users)
+	})
+
+	mux.HandleFunc("/api/replies", func(w http.ResponseWriter, r *http.Request) {
+		rows, err := db.Query(`SELECT * FROM replies;`)
+		if err != nil {
+			log.Println("error:", err)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(rows)
 	})
 
 	env := os.Getenv("ENV")
@@ -123,4 +157,5 @@ func main() {
 		log.Println("Running in local mode on http://localhost:" + port)
 		log.Fatal(http.ListenAndServe(":"+port, mux))
 	}
+	
 }

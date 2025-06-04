@@ -142,6 +142,7 @@
           <th>Имя</th>
           <th>Кол-во сообщений</th>
           <th>Процент</th>
+          <th>Респект</th>
         </tr>
       </thead>
       <tbody>
@@ -156,6 +157,7 @@
           </td>
           <td :data-label="'Кол-во сообщений'">{{ user.message_count }}</td>
           <td :data-label="'Процент'">{{ formatPercent(user.percent) }}%</td>
+          <td :data-label="'Респект'">{{ user.respect }}</td>
         </tr>
       </tbody>
     </table>
