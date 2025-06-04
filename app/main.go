@@ -1,4 +1,4 @@
-package main
+кpackage main
 
 import (
 	"database/sql"
@@ -25,7 +25,7 @@ func main() {
 	defer db.Close()
 
 	c := cron.New()
-	c.AddFunc("@every 1m", func() {
+	c.AddFunc("0 0 * * *", func() {
 		_, err := db.Exec("UPDATE users SET action = 3")
 		if err != nil {
 			log.Println(err)
