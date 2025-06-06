@@ -3,7 +3,6 @@ package reply_service
 import (
 	reply_repository "go-tg-bot/internal/repository/reply"
 	user_repository "go-tg-bot/internal/repository/user"
-	"log"
 
 	"gopkg.in/telebot.v4"
 )
@@ -30,7 +29,7 @@ func (rs *ReplyService) Handle(c telebot.Context) {
 	rs.rr.Add(fromId, replyToId, text)
 
 	user := rs.ur.UserByTelegramId(fromId)
-	
+
 	if user == nil || user.Action < 1 || replyToId == fromId {
 		return
 	}
