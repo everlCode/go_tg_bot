@@ -30,8 +30,8 @@ func (rs *ReplyService) Handle(c telebot.Context) {
 	rs.rr.Add(fromId, replyToId, text)
 
 	user := rs.ur.UserByTelegramId(fromId)
-	log.Println(user.Name)
-	if user == nil || user.Action < 1 {
+	
+	if user == nil || user.Action < 1 || replyToId == fromId {
 		return
 	}
 
