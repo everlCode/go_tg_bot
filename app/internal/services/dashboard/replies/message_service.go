@@ -1,8 +1,9 @@
-package reply_service
+package message_service
 
 import (
 	reply_repository "go-tg-bot/internal/repository/reply"
 	user_repository "go-tg-bot/internal/repository/user"
+	"log"
 
 	"gopkg.in/telebot.v4"
 )
@@ -21,7 +22,29 @@ func NewService(rr reply_repository.ReplyRepository, ur user_repository.UserRepo
 
 func (rs *ReplyService) Handle(c telebot.Context) {
 	msg := c.Message()
+	if msg == nil || msg.Sender == nil {
+		return
+	}
+	
+	id := msg.Sender.ID
+	name := msg.Sender.FirstName
+	userExist := rs.ur.UserExist(id)
 
+	if userExist {
+		rs.ur.AddUserMessageCount(id)
+	} else {
+		rs.ur.CreateUser(id, name, 1)
+	}
+
+	if msg.IsReply() {
+		log.Println("yes")
+		rs.HandleReply(msg)
+	}
+
+	return
+}
+
+func (rs *ReplyService) HandleReply(msg *telebot.Message) {
 	replyToId := msg.ReplyTo.Sender.ID
 	text := msg.Text
 	fromId := msg.Sender.ID
@@ -29,17 +52,18 @@ func (rs *ReplyService) Handle(c telebot.Context) {
 	rs.rr.Add(fromId, replyToId, text)
 
 	user := rs.ur.UserByTelegramId(fromId)
-
+	
 	if user == nil || user.Action < 1 || replyToId == fromId {
 		return
 	}
-
+	
 	if text == "+" || text == "-" {
 		rs.ChangeRespect(replyToId, text)
 		rs.DecreaseAction(fromId)
-
 	}
 }
+
+
 
 func (rs *ReplyService) ChangeRespect(id int64, text string) {
 	var add int

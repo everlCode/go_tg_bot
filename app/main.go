@@ -6,7 +6,7 @@ import (
 	reply_repository "go-tg-bot/internal/repository/reply"
 	user_repository "go-tg-bot/internal/repository/user"
 	dashboard_service "go-tg-bot/internal/services/dashboard"
-	reply_service "go-tg-bot/internal/services/dashboard/replies"
+	message_service "go-tg-bot/internal/services/dashboard/replies"
 	"log"
 	"net/http"
 	"os"
@@ -36,7 +36,7 @@ func main() {
 
 	userRepository := user_repository.NewRepository(db)
 	replyRepository := reply_repository.NewRepository(db)
-	replyService := reply_service.NewService(replyRepository, userRepository)
+	replyService := message_service.NewService(replyRepository, userRepository)
 	// Загружаем переменные окружения
 	bot, err := telebot.NewBot(telebot.Settings{
 		Token:  os.Getenv("TELEGRAM_BOT_TOKEN"),
@@ -89,27 +89,6 @@ func main() {
 	})
 
 	bot.Handle(telebot.OnText, func(c telebot.Context) error {
-		log.Println("text")
-		msg := c.Message()
-		if msg == nil || msg.Sender == nil {
-			log.Print(msg)
-			return nil
-		}
-
-		id := msg.Sender.ID
-		name := msg.Sender.FirstName
-		userExist := userRepository.UserExist(id)
-
-		if userExist {
-			userRepository.AddUserMessageCount(id)
-		} else {
-			userRepository.CreateUser(id, name, 1)
-		}
-
-		return nil
-	})
-
-	bot.Handle(telebot.OnReply, func(c telebot.Context) error {
 		replyService.Handle(c)
 
 		return nil
