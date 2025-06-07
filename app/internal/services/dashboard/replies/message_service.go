@@ -5,7 +5,6 @@ import (
 	message_repository "go-tg-bot/internal/repository/message"
 	reply_repository "go-tg-bot/internal/repository/reply"
 	user_repository "go-tg-bot/internal/repository/user"
-	"log"
 
 	"gopkg.in/telebot.v4"
 )
@@ -15,8 +14,8 @@ type MessageService struct {
 	ur                 user_repository.UserRepository
 	mr                 message_repository.MessageRepository
 	reactionRepository reaction_repository.ReactionRepository
-	PositiveEmodji []string
-	NegativeEmodji []string
+	PositiveEmodji     []string
+	NegativeEmodji     []string
 }
 
 func NewService(
@@ -30,8 +29,8 @@ func NewService(
 		ur:                 ur,
 		mr:                 *mr,
 		reactionRepository: *reactionRepository,
-		PositiveEmodji: []string{"👍", "🔥"},
-		NegativeEmodji: []string{"👎", "💩"},
+		PositiveEmodji:     []string{"👍", "🔥", "❤️"},
+		NegativeEmodji:     []string{"👎", "💩"},
 	}
 }
 
@@ -71,9 +70,12 @@ func (rs *MessageService) HandleReply(msg *telebot.Message) {
 }
 
 func (rs *MessageService) HandleReaction(reaction *telebot.MessageReaction) {
+	if reaction == nil || len(reaction.NewReaction) == 0 {
+		return
+	}
 	react := reaction.NewReaction[0]
 	userFromId := reaction.User.ID
- 
+
 	rs.reactionRepository.Add(userFromId, int64(reaction.MessageID), react.Emoji)
 
 	message := rs.mr.GetById(reaction.MessageID)
@@ -87,24 +89,23 @@ func (rs *MessageService) HandleReaction(reaction *telebot.MessageReaction) {
 	}
 
 	user := rs.ur.UserByTelegramId(userFromId)
-	log.Println(userFromId)
-	log.Println(user)
+
 	if user == nil || user.Action < 1 {
 		return
 	}
 
 	for _, v := range rs.PositiveEmodji {
-        if v == react.Emoji {
+		if v == react.Emoji {
 			rs.ChangeRespect(message.FromUser, 1)
-            break
-        }
-    }
+			break
+		}
+	}
 	for _, v := range rs.NegativeEmodji {
-        if v == react.Emoji {
+		if v == react.Emoji {
 			rs.ChangeRespect(message.FromUser, -1)
-            break
-        }
-    }
+			break
+		}
+	}
 }
 
 func (rs *MessageService) ChangeRespect(id int, rate int) {
