@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	reaction_repository "go-tg-bot/internal/repository"
@@ -9,6 +10,7 @@ import (
 	user_repository "go-tg-bot/internal/repository/user"
 	dashboard_service "go-tg-bot/internal/services/dashboard"
 	message_service "go-tg-bot/internal/services/dashboard/replies"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -73,6 +75,9 @@ func main() {
 	// Telegram Webhook: используем bot.HandleUpdate
 	mux.HandleFunc("/bot", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("BOT")
+		bodyBytes, _ := io.ReadAll(r.Body)
+		log.Println("Raw body:", string(bodyBytes))
+		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		var update telebot.Update
 
 		if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
@@ -86,6 +91,7 @@ func main() {
 		if update.MessageReaction != nil {
 			messageService.HandleReaction(update.MessageReaction)
 		}
+		
 	})
 
 	bot.Handle(telebot.OnText, func(c telebot.Context) error {
@@ -146,6 +152,7 @@ func main() {
 			Endpoint: &telebot.WebhookEndpoint{
 				PublicURL: publicURL,
 			},
+			AllowedUpdates: []string{"message", "message_reaction"},
 		})
 		if err != nil {
 			log.Fatal(err)
