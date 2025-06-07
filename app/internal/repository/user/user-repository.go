@@ -82,7 +82,7 @@ func (ur *UserRepository) GetTopUsers() *sql.Rows {
 		SELECT telegram_id, name, message_count, ROUND((message_count * 100.0) / total.total_messages, 2) AS percent, respect, action
 		FROM users,
     	(SELECT SUM(message_count) AS total_messages FROM users) AS total
-		ORDER BY message_count DESC;
+		ORDER BY respect DESC;
 	`)
 	if err != nil {
 		log.Println("error:", err)
