@@ -5,6 +5,7 @@ import (
 	message_repository "go-tg-bot/internal/repository/message"
 	reply_repository "go-tg-bot/internal/repository/reply"
 	user_repository "go-tg-bot/internal/repository/user"
+	"log"
 
 	"gopkg.in/telebot.v4"
 )
@@ -29,7 +30,7 @@ func NewService(
 		ur:                 ur,
 		mr:                 *mr,
 		reactionRepository: *reactionRepository,
-		PositiveEmodji:     []string{"👍", "🔥", "❤️"},
+		PositiveEmodji:     []string{"👍", "🔥", "\u2764"},
 		NegativeEmodji:     []string{"👎", "💩"},
 	}
 }
@@ -109,6 +110,7 @@ func (rs *MessageService) HandleReaction(reaction *telebot.MessageReaction) {
 }
 
 func (rs *MessageService) ChangeRespect(id int, rate int) {
+	log.Println("Change respect ")
 	rs.ur.AddRespect(id, rate)
 }
 
