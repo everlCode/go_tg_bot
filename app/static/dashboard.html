@@ -177,7 +177,7 @@
         fetch('/api/users')
           .then(res => res.json())
           .then(data => {
-            this.users = data.sort((a, b) => b.respect - a.respect)
+            this.users = data
           })
       },
       methods: {
