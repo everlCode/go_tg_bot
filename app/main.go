@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	reaction_repository "go-tg-bot/internal/repository"
 	message_repository "go-tg-bot/internal/repository/message"
 	reply_repository "go-tg-bot/internal/repository/reply"
 	user_repository "go-tg-bot/internal/repository/user"
@@ -38,22 +39,12 @@ func main() {
 	userRepository := user_repository.NewRepository(db)
 	replyRepository := reply_repository.NewRepository(db)
 	messageRepository := message_repository.NewRepository(db)
-	replyService := message_service.NewService(replyRepository, userRepository, *messageRepository)
+	reactionRepository := reaction_repository.NewRepository(db)
+	messageService := message_service.NewService(replyRepository, userRepository, messageRepository, reactionRepository)
 	// Загружаем переменные окружения
 	bot, err := telebot.NewBot(telebot.Settings{
 		Token:  os.Getenv("TELEGRAM_BOT_TOKEN"),
 		Client: &http.Client{},
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Устанавливаем webhook URL
-	publicURL := os.Getenv("WEBHOOK_URL")
-	err = bot.SetWebhook(&telebot.Webhook{
-		Endpoint: &telebot.WebhookEndpoint{
-			PublicURL: publicURL,
-		},
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -67,7 +58,7 @@ func main() {
 		
 		📌 Основной функционал:
 		— Бот учитывает количество сообщений каждого пользователя.
-		— Вы можете отвечать на чужие сообщения знаком **+** или **-**, чтобы изменить "уважение" (рейтинг) автора.
+		— Вы можете реагировать на чужие сообщения с помощью эмодзи "👍", "🔥" или "👎", "💩", чтобы изменить "уважение" (рейтинг) автора.
 		— Каждому пользователю доступно до 3 действий (оценок) в день.
 		— Вся активность отображается на дашборде (веб-интерфейсе).
 		
@@ -82,16 +73,29 @@ func main() {
 	// Telegram Webhook: используем bot.HandleUpdate
 	mux.HandleFunc("/bot", func(w http.ResponseWriter, r *http.Request) {
 		var update telebot.Update
+	
 		if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
-			http.Error(w, "invalid update", http.StatusBadRequest)
+			http.Error(w, "invalid update: ", http.StatusBadRequest)
+			log.Println(err)
 			return
 		}
-
+		
 		bot.ProcessUpdate(update)
+		//костыль, влибе нет обработки реакций
+		if (update.MessageReaction != nil) {
+			messageService.HandleReaction(update.MessageReaction)
+		}
 	})
 
 	bot.Handle(telebot.OnText, func(c telebot.Context) error {
-		replyService.Handle(c)
+		u := c.Update()
+		log.Println(u)
+		//r := u.MessageReaction
+		// log.Println(r)
+		// if r != nil {
+		// 	log.Println(r.NewReaction)
+		// }
+		messageService.Handle(c)
 
 		return nil
 	})
@@ -122,16 +126,29 @@ func main() {
 				return
 			}
 			replies = append(replies, reply_repository.Reply{
-				ID: id,
+				ID:   id,
 				From: from,
-				To: to,
+				To:   to,
 				Text: text,
 			})
-	
+
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(replies)
+	})
+
+	mux.HandleFunc("/setwebhook", func(w http.ResponseWriter, r *http.Request) {
+		// Устанавливаем webhook URL
+		publicURL := os.Getenv("WEBHOOK_URL")
+		err = bot.SetWebhook(&telebot.Webhook{
+			Endpoint: &telebot.WebhookEndpoint{
+				PublicURL: publicURL,
+			},
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	})
 
 	env := os.Getenv("ENV")

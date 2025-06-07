@@ -91,7 +91,7 @@ func (ur *UserRepository) GetTopUsers() *sql.Rows {
 	return rows
 }
 
-func (ur *UserRepository) AddRespect(id int64, add int) {
+func (ur *UserRepository) AddRespect(id int, add int) {
 	_, err := ur.db.Exec("UPDATE users SET respect = respect + ? WHERE telegram_id = ?", add, id)
 	if err != nil {
 		log.Print(err)

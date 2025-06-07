@@ -1,28 +1,41 @@
 package message_service
 
 import (
+	reaction_repository "go-tg-bot/internal/repository"
 	message_repository "go-tg-bot/internal/repository/message"
 	reply_repository "go-tg-bot/internal/repository/reply"
 	user_repository "go-tg-bot/internal/repository/user"
+	"log"
 
 	"gopkg.in/telebot.v4"
 )
 
-type ReplyService struct {
-	rr reply_repository.ReplyRepository
-	ur user_repository.UserRepository
-	mr message_repository.MessageRepository
+type MessageService struct {
+	rr                 reply_repository.ReplyRepository
+	ur                 user_repository.UserRepository
+	mr                 message_repository.MessageRepository
+	reactionRepository reaction_repository.ReactionRepository
+	PositiveEmodji []string
+	NegativeEmodji []string
 }
 
-func NewService(rr reply_repository.ReplyRepository, ur user_repository.UserRepository, mr message_repository.MessageRepository) ReplyService {
-	return ReplyService{
-		rr: rr,
-		ur: ur,
-		mr: mr,
+func NewService(
+	rr reply_repository.ReplyRepository,
+	ur user_repository.UserRepository,
+	mr *message_repository.MessageRepository,
+	reactionRepository *reaction_repository.ReactionRepository,
+) MessageService {
+	return MessageService{
+		rr:                 rr,
+		ur:                 ur,
+		mr:                 *mr,
+		reactionRepository: *reactionRepository,
+		PositiveEmodji: []string{"👍", "🔥"},
+		NegativeEmodji: []string{"👎", "💩"},
 	}
 }
 
-func (rs *ReplyService) Handle(c telebot.Context) {
+func (rs *MessageService) Handle(c telebot.Context) {
 	msg := c.Message()
 	if msg == nil || msg.Sender == nil {
 		return
@@ -48,37 +61,56 @@ func (rs *ReplyService) Handle(c telebot.Context) {
 	return
 }
 
-func (rs *ReplyService) HandleReply(msg *telebot.Message) {
+func (rs *MessageService) HandleReply(msg *telebot.Message) {
 
 	replyToId := msg.ReplyTo.Sender.ID
 	text := msg.Text
 	fromId := msg.Sender.ID
 
 	rs.rr.Add(fromId, replyToId, text)
+}
 
-	user := rs.ur.UserByTelegramId(fromId)
+func (rs *MessageService) HandleReaction(reaction *telebot.MessageReaction) {
+	react := reaction.NewReaction[0]
+	userFromId := reaction.User.ID
+ 
+	rs.reactionRepository.Add(userFromId, int64(reaction.MessageID), react.Emoji)
 
-	if user == nil || user.Action < 1 || replyToId == fromId {
+	message := rs.mr.GetById(reaction.MessageID)
+
+	if message == nil {
 		return
 	}
 
-	if text == "+" || text == "-" {
-		rs.ChangeRespect(replyToId, text)
-		rs.DecreaseAction(fromId)
+	if message.FromUser == int(userFromId) {
+		return
 	}
+
+	user := rs.ur.UserByTelegramId(userFromId)
+	log.Println(userFromId)
+	log.Println(user)
+	if user == nil || user.Action < 1 {
+		return
+	}
+
+	for _, v := range rs.PositiveEmodji {
+        if v == react.Emoji {
+			rs.ChangeRespect(message.FromUser, 1)
+            break
+        }
+    }
+	for _, v := range rs.NegativeEmodji {
+        if v == react.Emoji {
+			rs.ChangeRespect(message.FromUser, -1)
+            break
+        }
+    }
 }
 
-func (rs *ReplyService) ChangeRespect(id int64, text string) {
-	var add int
-	if text == "+" {
-		add = 1
-	}
-	if text == "-" {
-		add = -1
-	}
-	rs.ur.AddRespect(id, add)
+func (rs *MessageService) ChangeRespect(id int, rate int) {
+	rs.ur.AddRespect(id, rate)
 }
 
-func (rs *ReplyService) DecreaseAction(id int64) {
+func (rs *MessageService) DecreaseAction(id int64) {
 	rs.ur.DecreaseAction(id)
 }
