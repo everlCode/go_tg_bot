@@ -98,12 +98,14 @@ func (rs *MessageService) HandleReaction(reaction *telebot.MessageReaction) {
 	for _, v := range rs.PositiveEmodji {
 		if v == react.Emoji {
 			rs.ChangeRespect(message.FromUser, 1)
+			rs.DecreaseAction(userFromId)
 			break
 		}
 	}
 	for _, v := range rs.NegativeEmodji {
 		if v == react.Emoji {
 			rs.ChangeRespect(message.FromUser, -1)
+			rs.DecreaseAction(userFromId)
 			break
 		}
 	}
