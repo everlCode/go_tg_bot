@@ -72,17 +72,18 @@ func main() {
 
 	// Telegram Webhook: используем bot.HandleUpdate
 	mux.HandleFunc("/bot", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("BOT")
 		var update telebot.Update
-	
+
 		if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
 			http.Error(w, "invalid update: ", http.StatusBadRequest)
 			log.Println(err)
 			return
 		}
-		
+
 		bot.ProcessUpdate(update)
 		//костыль, влибе нет обработки реакций
-		if (update.MessageReaction != nil) {
+		if update.MessageReaction != nil {
 			messageService.HandleReaction(update.MessageReaction)
 		}
 	})
