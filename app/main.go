@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	message_repository "go-tg-bot/internal/repository/message"
 	reply_repository "go-tg-bot/internal/repository/reply"
 	user_repository "go-tg-bot/internal/repository/user"
 	dashboard_service "go-tg-bot/internal/services/dashboard"
@@ -36,7 +37,8 @@ func main() {
 
 	userRepository := user_repository.NewRepository(db)
 	replyRepository := reply_repository.NewRepository(db)
-	replyService := message_service.NewService(replyRepository, userRepository)
+	messageRepository := message_repository.NewRepository(db)
+	replyService := message_service.NewService(replyRepository, userRepository, *messageRepository)
 	// Загружаем переменные окружения
 	bot, err := telebot.NewBot(telebot.Settings{
 		Token:  os.Getenv("TELEGRAM_BOT_TOKEN"),
@@ -100,7 +102,6 @@ func main() {
 	})
 	mux.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {
 		//Подключение к БД
-
 		dashboardService := dashboard_service.NewService(userRepository)
 		users := dashboardService.DashboardData()
 
@@ -109,13 +110,28 @@ func main() {
 	})
 
 	mux.HandleFunc("/api/replies", func(w http.ResponseWriter, r *http.Request) {
-		rows, err := db.Query(`SELECT * FROM replies;`)
-		if err != nil {
-			log.Println("error:", err)
+		rows := replyRepository.All()
+		defer rows.Close()
+
+		var replies []reply_repository.Reply
+		for rows.Next() {
+			var id, from, to int
+			var text string
+			if err := rows.Scan(&id, &from, &to, &text); err != nil {
+				log.Println("Row scan error:", err)
+				return
+			}
+			replies = append(replies, reply_repository.Reply{
+				ID: id,
+				From: from,
+				To: to,
+				Text: text,
+			})
+	
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(rows)
+		json.NewEncoder(w).Encode(replies)
 	})
 
 	env := os.Getenv("ENV")
