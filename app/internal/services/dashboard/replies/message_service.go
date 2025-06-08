@@ -44,7 +44,7 @@ func (rs *MessageService) Handle(c telebot.Context) {
 	id := msg.Sender.ID
 	msgId := msg.ID
 	name := msg.Sender.FirstName
-	text := msg.Text
+	text := rs.getText(msg)
 
 	userExist := rs.ur.UserExist(id)
 	if !userExist {
@@ -60,6 +60,18 @@ func (rs *MessageService) Handle(c telebot.Context) {
 
 	return
 }
+
+func (rs *MessageService) getText(msg *telebot.Message) string {
+	if msg.Text != "" {
+		return msg.Text
+	}
+	if msg.VideoNote != nil {
+		return "videoNote"
+	}
+
+	return ""
+}
+
 
 func (rs *MessageService) HandleReply(msg *telebot.Message) {
 

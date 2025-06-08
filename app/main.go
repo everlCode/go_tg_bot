@@ -10,18 +10,24 @@ import (
 	user_repository "go-tg-bot/internal/repository/user"
 	dashboard_service "go-tg-bot/internal/services/dashboard"
 	message_service "go-tg-bot/internal/services/dashboard/replies"
+	"go-tg-bot/internal/services/gigachad"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/robfig/cron/v3"
 	"gopkg.in/telebot.v4"
 )
 
 func main() {
+	err := godotenv.Load(".env") // укажи путь до .env
+	if err != nil {
+		log.Printf("Ошибка загрузки .env файла: %v", err)
+	}
 	db, err := sql.Open("sqlite3", "./db/db.db")
 	if err != nil {
 		log.Fatal(err)
@@ -95,19 +101,28 @@ func main() {
 	bot.Handle(telebot.OnText, func(c telebot.Context) error {
 		u := c.Update()
 		log.Println(u)
-		//r := u.MessageReaction
-		// log.Println(r)
-		// if r != nil {
-		// 	log.Println(r.NewReaction)
-		// }
 		messageService.Handle(c)
 
+		return nil
+	})
+
+	bot.Handle(telebot.OnVideoNote, func(c telebot.Context) error {
+		messageService.Handle(c)
 		return nil
 	})
 
 	// Свой API маршрут
 	mux.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./static/dashboard.html")
+	})
+
+	mux.HandleFunc("/gigachat", func(w http.ResponseWriter, r *http.Request) {
+		_, err := gigachad.NewApi()
+
+		if err != nil {
+			http.Error(w, "Failed to get API token: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
 	})
 	mux.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {
 		//Подключение к БД
