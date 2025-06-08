@@ -66,7 +66,7 @@ func (rs *MessageService) getText(msg *telebot.Message) string {
 		return msg.Text
 	}
 	if msg.VideoNote != nil {
-		return "videoNote"
+		return msg.VideoNote.UniqueID
 	}
 
 	return ""
