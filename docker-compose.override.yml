@@ -6,8 +6,8 @@ services:
     volumes:
       - ./app:/app
       - ./app/air.toml:/app/air.toml
-      - ./app/.env:/app/.env
-    environment:
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - ./.env:/app/.env
+    env_file:
+      - .env
     ports:
       - "80:80"

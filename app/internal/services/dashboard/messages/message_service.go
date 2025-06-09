@@ -6,6 +6,7 @@ import (
 	reply_repository "go-tg-bot/internal/repository/reply"
 	user_repository "go-tg-bot/internal/repository/user"
 	"log"
+	"time"
 
 	"gopkg.in/telebot.v4"
 )
@@ -72,7 +73,6 @@ func (rs *MessageService) getText(msg *telebot.Message) string {
 	return ""
 }
 
-
 func (rs *MessageService) HandleReply(msg *telebot.Message) {
 
 	replyToId := msg.ReplyTo.Sender.ID
@@ -130,4 +130,18 @@ func (rs *MessageService) ChangeRespect(id int, rate int) {
 
 func (rs *MessageService) DecreaseAction(id int64) {
 	rs.ur.DecreaseAction(id)
+}
+
+func (service MessageService) FormatMessagesForGigaChat(messages []message_repository.Message) string {
+	content := `Напиши краткий пересказ сообщений нашего чата за сегодня, подмечай только важное, указывай автора сообшения и его мысли,
+	можно добавить юмора и своих комментариев и советов. Красиво форматируй текст, можешь добавить эмодзи. Вот сообщения: \n`
+
+	for _, msg := range messages {
+		time := time.Unix(
+			int64(msg.SendAt),
+			0,
+		).Format("15:04")
+		content += msg.UserName + ": " + msg.Text + " " + time + "\n"
+	}
+	return content
 }

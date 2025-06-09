@@ -9,7 +9,7 @@ import (
 	reply_repository "go-tg-bot/internal/repository/reply"
 	user_repository "go-tg-bot/internal/repository/user"
 	dashboard_service "go-tg-bot/internal/services/dashboard"
-	message_service "go-tg-bot/internal/services/dashboard/replies"
+	message_service "go-tg-bot/internal/services/dashboard/messages"
 	"go-tg-bot/internal/services/gigachad"
 	"io"
 	"log"
@@ -34,16 +34,6 @@ func main() {
 	}
 	defer db.Close()
 
-	c := cron.New()
-	c.AddFunc("0 0 * * *", func() {
-		_, err := db.Exec("UPDATE users SET action = 10")
-		if err != nil {
-			log.Println(err)
-		}
-		log.Println("Cron: задание выполнено в", time.Now())
-	})
-	c.Start()
-
 	userRepository := user_repository.NewRepository(db)
 	replyRepository := reply_repository.NewRepository(db)
 	messageRepository := message_repository.NewRepository(db)
@@ -57,6 +47,27 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	c := cron.New()
+	c.AddFunc("0 0 * * *", func() {
+		_, err := db.Exec("UPDATE users SET action = 10")
+		if err != nil {
+			log.Println(err)
+		}
+		log.Println("Cron: задание выполнено в", time.Now())
+	})
+
+	c.AddFunc("0 22 * * *", func() {
+		messages := messageRepository.GetMessagesForToday()
+
+		content := messageService.FormatMessagesForGigaChat(messages)
+
+		gigaChatApi, _ := gigachad.NewApi()
+		result := gigaChatApi.Send(content)
+
+		bot.Send(telebot.ChatID(-4204971428), result.Choices[0].Message.Content)
+	})
+	c.Start()
 
 	// Регистрируем хендлеры
 	bot.Handle("/start", func(c telebot.Context) error {
@@ -117,12 +128,24 @@ func main() {
 	})
 
 	mux.HandleFunc("/gigachat", func(w http.ResponseWriter, r *http.Request) {
-		_, err := gigachad.NewApi()
+
+		messages := messageRepository.GetMessagesForToday()
+		if len(messages) == 0 {
+			w.Write([]byte("No messages"))
+		}
+		content := messageService.FormatMessagesForGigaChat(messages)
+
+		gigaChatApi, err := gigachad.NewApi()
+		result := gigaChatApi.Send(content)
 
 		if err != nil {
 			http.Error(w, "Failed to get API token: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
+		// bot.Send(telebot.ChatID(-4204971428), result.Choices[0].Message.Content)
+		// bot.Send(telebot.ChatID(-4204971428), "TEST")
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(result)
 	})
 	mux.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {
 		//Подключение к БД

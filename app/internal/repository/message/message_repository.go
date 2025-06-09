@@ -15,6 +15,9 @@ type Message struct {
 	FromUser int
 	Text string
 	SendAt int
+
+	//addtitional params
+	UserName string
 }
 
 func NewRepository(db *sql.DB) *MessageRepository {
@@ -44,4 +47,33 @@ func (mr *MessageRepository) GetById(message_id int) *Message {
 		Text: text,
 		SendAt: send_at,
 	}
+}
+
+func (mr *MessageRepository) GetMessagesForToday() []Message {
+	rows, error := mr.db.Query(`SELECT u.name, m.text, m.send_at FROM messages m
+		JOIN users u on u.telegram_id = m.from_user
+		WHERE send_at >= strftime('%s', 'now', 'start of day')
+	  AND send_at < strftime('%s', 'now', 'start of day', '+1 day');`)
+
+	if error != nil {
+		log.Println(error)
+		return nil
+	}
+
+	var messages []Message
+
+	for rows.Next() {
+		var send_at int
+		var text, name string
+
+		rows.Scan(&name, &text, &send_at)
+		msg := Message{
+			SendAt: send_at,
+			Text: text,
+			UserName: name,
+		}
+		messages = append(messages, msg)
+	}
+
+	return messages
 }
