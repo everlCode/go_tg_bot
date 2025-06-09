@@ -134,7 +134,7 @@ func main() {
 			w.Write([]byte("No messages"))
 		}
 		content := messageService.FormatMessagesForGigaChat(messages)
-
+		log.Println(content)
 		gigaChatApi, err := gigachad.NewApi()
 		result := gigaChatApi.Send(content)
 
