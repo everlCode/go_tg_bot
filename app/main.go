@@ -142,7 +142,7 @@ func main() {
 			http.Error(w, "Failed to get API token: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-		// bot.Send(telebot.ChatID(-4204971428), result.Choices[0].Message.Content)
+		bot.Send(telebot.ChatID(-4204971428), result.Choices[0].Message.Content)
 		// bot.Send(telebot.ChatID(-4204971428), "TEST")
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(result)
