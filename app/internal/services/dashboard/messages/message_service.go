@@ -133,7 +133,7 @@ func (rs *MessageService) DecreaseAction(id int64) {
 }
 
 func (service MessageService) FormatMessagesForGigaChat(messages []message_repository.Message) string {
-	content := `Напиши краткий пересказ сообщений нашего чата за сегодня, подмечай только важное, указывай автора сообшения и его мысли,
+	content := `Напиши краткий пересказ сообщений нашего чата за сегодня, подмечай только важное
 	можно добавить юмора и своих комментариев и советов. Красиво форматируй текст, можешь добавить эмодзи. Вот сообщения: \n`
 
 	for _, msg := range messages {
