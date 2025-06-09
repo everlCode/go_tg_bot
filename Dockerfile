@@ -16,14 +16,17 @@ COPY app/. .
 # Собираем бинарник
 RUN go build -o bot .
 
+# --- Финишный образ ---
 FROM debian:bullseye-slim
 
-WORKDIR /app
+ENV TZ=Europe/Moscow
 
-RUN apt-get update && apt-get install -y sqlite3 ca-certificates
+RUN apt-get update && apt-get install -y sqlite3 ca-certificates tzdata && \
+    ln -snf /usr/share/zoneinfo/Europe/Moscow /etc/localtime && echo "Europe/Moscow" > /etc/timezone
+
+WORKDIR /app
 
 # Копируем собранный бинарник
 COPY --from=builder /app/bot .
 
-# Запускаем без live reload
 CMD ["./bot"]
