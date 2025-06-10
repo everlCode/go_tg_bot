@@ -59,7 +59,7 @@ func main() {
 		log.Println("Cron: задание выполнено в", time.Now())
 	})
 
-	c.AddFunc("0 22 * * *", func() {
+	c.AddFunc("30 21 * * *", func() {
 		messages := messageRepository.GetMessagesForToday()
 
 		content := messageService.FormatMessagesForGigaChat(messages)
