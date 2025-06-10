@@ -57,7 +57,7 @@ func main() {
 		log.Println("Cron: задание выполнено в", time.Now())
 	})
 
-	c.AddFunc("10 22 * * *", func() {
+	c.AddFunc("0 22 * * *", func() {
 		messages := messageRepository.GetMessagesForToday()
 
 		content := messageService.FormatMessagesForGigaChat(messages)
@@ -97,7 +97,7 @@ func main() {
 
 		if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
 			http.Error(w, "invalid update: ", http.StatusBadRequest)
-			log.Println(err)
+			log.Println(err)		log.Println(messages)
 			return
 		}
 
