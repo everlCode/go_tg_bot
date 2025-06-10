@@ -6,6 +6,7 @@ import (
 	reply_repository "go-tg-bot/internal/repository/reply"
 	user_repository "go-tg-bot/internal/repository/user"
 	"log"
+	"strings"
 	"time"
 
 	"gopkg.in/telebot.v4"
@@ -133,15 +134,51 @@ func (rs *MessageService) DecreaseAction(id int64) {
 }
 
 func (service MessageService) FormatMessagesForGigaChat(messages []message_repository.Message) string {
-	content := `Напиши краткий пересказ сообщений нашего чата за сегодня, подмечай только важное
-	можно добавить юмора и своих комментариев и советов. Красиво форматируй текст, можешь добавить эмодзи. Вот сообщения: \n`
+	content := `Прочитай переписку в чате и напиши короткое, но остроумное описание этой беседы. 
+	Используй юмор, сарказм и лёгкие подколы к участникам, чтобы получилось весело и живо.
+	Не бойся шуточных замечаний, главное — чтобы итоговое описание было интересным и с иронией отражало суть разговора.
+	Вот сообщения: \n`
 
 	for _, msg := range messages {
+		text := service.deleteBadWords(msg.Text)
 		time := time.Unix(
 			int64(msg.SendAt),
 			0,
 		).Format("15:04")
-		content += msg.UserName + ": " + msg.Text + " " + time + "\n"
+		content += msg.UserName + ": " + text + " " + time + "\n"
 	}
 	return content
+}
+
+func (service MessageService) deleteBadWords(message string) string {
+	lower := strings.ToLower(message)
+	for _, word := range badWords {
+		wordLower := strings.ToLower(word)
+		for {
+			idx := strings.Index(lower, wordLower)
+			if idx == -1 {
+				break
+			}
+			// Удаляем найденное слово (сохраняя регистр оригинального текста)
+			message = message[:idx] + message[idx+len(word):]
+			lower = strings.ToLower(message)
+		}
+	}
+
+	return message
+}
+
+var badWords = []string{
+	"сука", "сучара", "сучка",
+	"пиздец", "пизда", "пизде", "пизду", "пиздобол", "пиздабол", "пизд",
+	"нахуй", "на хуй", "хуй", "хуевый", "хуев", "нихуя", "охуен", "охуеть", "хули", "хуярить", "хуяр", "ахуе", "хуе", "хуи", "хуя",
+	"захуярь",
+	"еблан", "ебланище", "еблище", "ебись", "заебца", "заеб", "ебло", "ебать", "ебанный", "ебаный", "ебан", "ебат", "ебля", "ебли",
+	"ебал", "разьеб", "разьё", "ебуч", "ебу", "вьеб", "въеб", "въебика", "ёб", "еб",
+	"пидар", "пидор", "пидарас", "пидрила",
+	"бля", "блять", "блядь", "бл ", "бл\n", "бляди", "блядс", 
+	"гандон", "гондон",
+	"тварь", "твар",
+	"долбоеб", "долбоя", "даун", "дибил",
+	"говн",
 }

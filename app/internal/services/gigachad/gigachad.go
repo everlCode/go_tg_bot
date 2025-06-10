@@ -114,7 +114,7 @@ func (gigaChat GigaChatApi) Send(content string) (GigaChatResponse) {
 		Model: "GigaChat",
 		Messages: []GigaChatMessage{
 			{
-				Role:    "system",
+				Role:    "user",
 				Content: content,
 			},
 		},

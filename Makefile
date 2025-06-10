@@ -1,5 +1,7 @@
 connect:
 	 ssh root@89.111.172.150
+backup:
+	rsync -avz -e ssh root@89.111.172.150:/var/www/bot/db ~/backup/
 # Основной compose-файл
 COMPOSE_FILE=docker-compose.yml
 
