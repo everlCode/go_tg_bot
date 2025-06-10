@@ -97,7 +97,7 @@ func main() {
 
 		if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
 			http.Error(w, "invalid update: ", http.StatusBadRequest)
-			log.Println(err)		log.Println(messages)
+			log.Println(err)
 			return
 		}
 
