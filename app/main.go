@@ -7,6 +7,7 @@ import (
 	reaction_repository "go-tg-bot/internal/repository"
 	message_repository "go-tg-bot/internal/repository/message"
 	reply_repository "go-tg-bot/internal/repository/reply"
+	report_repository "go-tg-bot/internal/repository/report"
 	user_repository "go-tg-bot/internal/repository/user"
 	dashboard_service "go-tg-bot/internal/services/dashboard"
 	message_service "go-tg-bot/internal/services/dashboard/messages"
@@ -38,6 +39,7 @@ func main() {
 	replyRepository := reply_repository.NewRepository(db)
 	messageRepository := message_repository.NewRepository(db)
 	reactionRepository := reaction_repository.NewRepository(db)
+	reportRepository := report_repository.NewRepository(db)
 	messageService := message_service.NewService(replyRepository, userRepository, messageRepository, reactionRepository)
 	// Загружаем переменные окружения
 	bot, err := telebot.NewBot(telebot.Settings{
@@ -65,7 +67,10 @@ func main() {
 		gigaChatApi, _ := gigachad.NewApi()
 		result := gigaChatApi.Send(content)
 
-		bot.Send(telebot.ChatID(-4204971428), result.Choices[0].Message.Content)
+		txt := result.Choices[0].Message.Content
+
+		bot.Send(telebot.ChatID(-4204971428), txt)
+		reportRepository.Create(txt)
 	})
 	c.Start()
 
