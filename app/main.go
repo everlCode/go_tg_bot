@@ -133,7 +133,6 @@ func main() {
 	})
 
 	mux.HandleFunc("/gigachat", func(w http.ResponseWriter, r *http.Request) {
-
 		messages := messageRepository.GetMessagesForToday()
 		if len(messages) == 0 {
 			w.Write([]byte("No messages"))

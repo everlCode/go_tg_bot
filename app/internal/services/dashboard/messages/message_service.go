@@ -134,6 +134,17 @@ func (rs *MessageService) DecreaseAction(id int64) {
 }
 
 func (service MessageService) FormatMessagesForGigaChat(messages []message_repository.Message) string {
+	names := map[int]string{
+        853082525: "Роман",
+        1425523987: "Николай",
+        6163710268: "Александр",
+        987031755: "Максим",
+        1245777783: "Иван",
+        1095940542: "Андрей",
+        302048098: "Андрей",
+        812431129: "Илья",
+    }
+
 	content := `Прочитай переписку в чате и напиши короткое, но остроумное описание этой беседы. 
 	Используй юмор, сарказм и лёгкие подколы к участникам, чтобы получилось весело и живо.
 	Не бойся шуточных замечаний, главное — чтобы итоговое описание было интересным и с иронией отражало суть разговора.
@@ -145,7 +156,7 @@ func (service MessageService) FormatMessagesForGigaChat(messages []message_repos
 			int64(msg.SendAt),
 			0,
 		).Format("15:04")
-		content += msg.UserName + ": " + text + " " + time + "\n"
+		content += names[msg.UserId] + ": " + text + " " + time + "\n"
 	}
 	return content
 }
