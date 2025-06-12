@@ -10,15 +10,15 @@ type MessageRepository struct {
 }
 
 type Message struct {
-	ID int
+	ID        int
 	MessageId int
-	FromUser int
-	Text string
-	SendAt int
+	FromUser  int
+	Text      string
+	SendAt    int
 
 	//addtitional params
 	UserName string
-	UserId int
+	UserId   int
 }
 
 func NewRepository(db *sql.DB) *MessageRepository {
@@ -38,21 +38,23 @@ func (mr *MessageRepository) GetById(message_id int) *Message {
 	msg := mr.db.QueryRow("SELECT * FROM messages WHERE message_id = ?", message_id)
 	var id, from, send_at int
 	var text string
-	
+
 	msg.Scan(&id, &message_id, &from, &text, &send_at)
 
 	return &Message{
-		ID: id,
+		ID:        id,
 		MessageId: message_id,
-		FromUser: from,
-		Text: text,
-		SendAt: send_at,
+		FromUser:  from,
+		Text:      text,
+		SendAt:    send_at,
 	}
 }
 
 func (mr *MessageRepository) GetMessagesForToday() []Message {
 	rows, error := mr.db.Query(`SELECT u.name, u.telegram_id, m.text, m.send_at FROM messages m
-		JOIN users u on u.telegram_id = m.from_user;`)
+		JOIN users u on u.telegram_id = m.from_user
+		WHERE send_at >= strftime('%s', 'now', 'start of day')
+	  AND send_at < strftime('%s', 'now', 'start of day', '+1 day');`)
 
 	if error != nil {
 		log.Println(error)
@@ -67,10 +69,10 @@ func (mr *MessageRepository) GetMessagesForToday() []Message {
 
 		rows.Scan(&name, &user_id, &text, &send_at)
 		msg := Message{
-			SendAt: send_at,
-			Text: text,
+			SendAt:   send_at,
+			Text:     text,
 			UserName: name,
-			UserId: user_id,
+			UserId:   user_id,
 		}
 		messages = append(messages, msg)
 	}
