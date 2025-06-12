@@ -152,8 +152,19 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(result)
 	})
+
+	mux.HandleFunc("/gigachat", func(w http.ResponseWriter, r *http.Request) {
+        // table := "```\n" +
+        //     "Имя      | Баллы | Страна\n" +
+        //     "---------+-------+--------\n" +
+        //     "Вася     |  100  | РФ    \n" +
+        //     "Джон     |   75  | США   \n" +
+        //     "Ирина    |   95  | Беларусь\n" +
+        //     "```"
+        //  bot.Send(table)
+    })
 	mux.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {
-		//Подключение к БД
+		//Подключение к Б
 		dashboardService := dashboard_service.NewService(userRepository)
 		users := dashboardService.DashboardData()
 
