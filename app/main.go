@@ -156,15 +156,15 @@ func main() {
 	bot.Handle("/top", func(c telebot.Context) error {
 		// dashboardService := dashboard_service.NewService(userRepository)
 		// users := dashboardService.DashboardData()
-		table := "```\n" +
-			"Имя           | Кол-во сообщений | Респект\n" +
-			"--------------|------------------|--------\n" +
-			"Иван          | 15               | 120\n" +
-			"Мария         | 8                | 85\n" +
-			"Александр     | 27               | 210\n" +
-			"```"
-
-		return c.Send(table)
+		table := `<pre>
+		Имя        | Сообщ. | Респект
+		-----------|--------|--------
+		Иван       | 15     | 120
+		Мария      | 8      | 85
+		Александр  | 27     | 210
+		</pre>`
+				// Используем ModeHTML для поддержки <pre>
+			return c.Send(table,  "HTML")
 	})
 
 	mux.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {
