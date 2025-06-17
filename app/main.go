@@ -40,6 +40,7 @@ func main() {
 	messageRepository := message_repository.NewRepository(db)
 	reactionRepository := reaction_repository.NewRepository(db)
 	reportRepository := report_repository.NewRepository(db)
+	dashboardService := dashboard_service.NewService(userRepository)
 	messageService := message_service.NewService(replyRepository, userRepository, messageRepository, reactionRepository)
 	// Загружаем переменные окружения
 	bot, err := telebot.NewBot(telebot.Settings{
@@ -154,21 +155,11 @@ func main() {
 	})
 
 	bot.Handle("/top", func(c telebot.Context) error {
-		// dashboardService := dashboard_service.NewService(userRepository)
-		// users := dashboardService.DashboardData()
-		table := `<pre>
-		Имя        | Сообщ. | Респект
-		-----------|--------|--------
-		Иван       | 15     | 120
-		Мария      | 8      | 85
-		Александр  | 27     | 210
-		</pre>`
-				// Используем ModeHTML для поддержки <pre>
-			return c.Send(table,  "HTML")
+		top := dashboardService.UsersTop()
+		return c.Send(top, "HTML")
 	})
 
 	mux.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {
-		dashboardService := dashboard_service.NewService(userRepository)
 		users := dashboardService.DashboardData()
 
 		w.Header().Set("Content-Type", "application/json")

@@ -1,8 +1,10 @@
 package dashboard_service
 
 import (
+	"fmt"
 	user_repository "go-tg-bot/internal/repository/user"
 	"log"
+	"strings"
 )
 
 type DashboardService struct {
@@ -39,7 +41,16 @@ func (ds DashboardService) DashboardData() []user_repository.User {
 	return users
 }
 
-// func (ds DashboardService) UsersTop() []user_repository.User {
-// 	users := ds.DashboardData()
+func (ds DashboardService) UsersTop() string {
+	users := ds.DashboardData()
 
-// }
+	var b strings.Builder
+	for _, u := range users {
+		b.WriteString(fmt.Sprintf(
+			"👤 %s\n   📨 Сообщений: %d\n   🏅 Респект:   %d\n\n",
+			u.Name, u.MessageCount, u.Respect,
+		))
+	}
+
+	return b.String()
+}
