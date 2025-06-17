@@ -154,17 +154,20 @@ func main() {
 	})
 
 	bot.Handle("/top", func(c telebot.Context) error {
-		return c.Send("```\n" +
-            "Имя      | Баллы | Страна\n" +
-            "---------+-------+--------\n" +
-            "Вася     |  100  | РФ    \n" +
-            "Джон     |   75  | США   \n" +
-            "Ирина    |   95  | Беларусь\n" +
-            "```")
+		// dashboardService := dashboard_service.NewService(userRepository)
+		// users := dashboardService.DashboardData()
+		table := "```\n" +
+			"Имя           | Кол-во сообщений | Респект\n" +
+			"--------------|------------------|--------\n" +
+			"Иван          | 15               | 120\n" +
+			"Мария         | 8                | 85\n" +
+			"Александр     | 27               | 210\n" +
+			"```"
+
+		return c.Send(table)
 	})
-	
+
 	mux.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {
-		//Подключение к Б
 		dashboardService := dashboard_service.NewService(userRepository)
 		users := dashboardService.DashboardData()
 

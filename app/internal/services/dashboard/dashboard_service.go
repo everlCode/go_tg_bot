@@ -38,3 +38,8 @@ func (ds DashboardService) DashboardData() []user_repository.User {
 
 	return users
 }
+
+// func (ds DashboardService) UsersTop() []user_repository.User {
+// 	users := ds.DashboardData()
+
+// }
