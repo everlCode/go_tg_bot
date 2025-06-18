@@ -97,7 +97,7 @@ func main() {
 	mux.HandleFunc("/bot", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("BOT")
 		bodyBytes, _ := io.ReadAll(r.Body)
-		log.Println("Raw body:", string(bodyBytes))
+	
 		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		var update telebot.Update
 
@@ -123,7 +123,7 @@ func main() {
 		return nil
 	})
 
-	bot.Handle(telebot.OnVideoNote, func(c telebot.Context) error {
+	bot.Handle(telebot.OnMedia, func(c telebot.Context) error {
 		messageService.Handle(c)
 		return nil
 	})

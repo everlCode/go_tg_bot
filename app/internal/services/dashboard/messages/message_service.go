@@ -47,20 +47,18 @@ func (rs *MessageService) Handle(c telebot.Context) {
 	msgId := msg.ID
 	name := msg.Sender.FirstName
 	text := rs.getText(msg)
-
+	
 	userExist := rs.ur.UserExist(id)
 	if !userExist {
 		rs.ur.CreateUser(id, name, 1)
 	}
-
+	
 	rs.mr.Create(msgId, id, text, msg.Unixtime)
 	rs.ur.AddUserMessageCount(id)
 
 	if msg.IsReply() {
 		rs.HandleReply(msg)
 	}
-
-	return
 }
 
 func (rs *MessageService) getText(msg *telebot.Message) string {
@@ -68,7 +66,11 @@ func (rs *MessageService) getText(msg *telebot.Message) string {
 		return msg.Text
 	}
 	if msg.VideoNote != nil {
-		return msg.VideoNote.UniqueID
+		return "Видео кружок"
+	}
+
+	if msg.Photo != nil {
+		return "Фото"
 	}
 
 	return ""
