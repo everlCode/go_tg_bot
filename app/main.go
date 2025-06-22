@@ -105,12 +105,25 @@ func main() {
 			return nil
 		}
 		var sb strings.Builder
-		sb.WriteString("Итоги недели\n\nТоп сообщений\n\n")
-		for _, stat := range stats.Stats {
-			sb.WriteString(fmt.Sprintf("%d : — %d\n", stat.UserName, stat.MessageCount))
+		sb.WriteString("✨ <b>Итоги недели</b> ✨\n\n")
+		sb.WriteString("🏆 <b>Топ сообщений</b>\n\n")
+
+		for i, stat := range stats.Stats {
+			medal := ""
+			switch i {
+			case 0:
+				medal = "🥇"
+			case 1:
+				medal = "🥈"
+			case 2:
+				medal = "🥉"
+			default:
+				medal = "🔹"
+			}
+			sb.WriteString(fmt.Sprintf("%s <b>%s</b> — <b>%d</b>\n", medal, stat.UserName, stat.MessageCount))
 		}
 
-		return c.Send(sb.String())
+		return c.Send(sb.String(), telebot.ModeHTML)
 	})
 
 	// Telegram Webhook: используем bot.HandleUpdate
