@@ -82,7 +82,7 @@ func main() {
 
 		response := service.FormatDataForWeekReport(stats)
 
-		bot.Send(telebot.ChatID(-4204971428), response)
+		bot.Send(telebot.ChatID(-4204971428), response, telebot.ModeHTML)
 	})
 	c.Start()
 
@@ -92,7 +92,9 @@ func main() {
 
 		response := service.FormatDataForWeekReport(stats)
 
-		return c.Send(response)
+		bot.Send(telebot.ChatID(-4204971428), response, telebot.ModeHTML)
+
+		return nil
 	})
 
 	// Регистрируем хендлеры
