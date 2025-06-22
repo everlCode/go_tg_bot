@@ -76,14 +76,14 @@ func main() {
 		reportRepository.Create(txt)
 	})
 
-	c.AddFunc("0 8 * * 1", func() {
-		service := stat_service.NewService(db, *messageRepository, userRepository, *reactionRepository)
-		stats := service.WeekStat()
+	// c.AddFunc("0 8 * * 1", func() {
+	// 	service := stat_service.NewService(db, *messageRepository, userRepository, *reactionRepository)
+	// 	stats := service.WeekStat()
 
-		response := service.FormatDataForWeekReport(stats)
+	// 	response := service.FormatDataForWeekReport(stats)
 
-		bot.Send(telebot.ChatID(-4204971428), response, telebot.ModeHTML)
-	})
+	// 	bot.Send(telebot.ChatID(-4204971428), response, telebot.ModeHTML)
+	// })
 	c.Start()
 
 	bot.Handle("/week", func(c telebot.Context) error {
