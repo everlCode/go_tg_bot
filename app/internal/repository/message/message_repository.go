@@ -79,3 +79,30 @@ func (mr *MessageRepository) GetMessagesForToday() []Message {
 
 	return messages
 }
+
+func (rep MessageRepository) MessageCountForWeek() map[int]int {
+	rows, err := rep.db.Query(`
+		SELECT from_user, count(*)
+		FROM messages m
+		WHERE send_at >= STRFTIME("%s", "now", "-7 days")
+		GROUP BY from_user
+		ORDER BY COUNT(*) DESC;
+	`)
+	if (err != nil) {
+		log.Println(err)
+		return nil
+	}
+	defer rows.Close()
+
+	stat := make(map[int]int)
+	for rows.Next() {
+		var userId, count int
+		if err := rows.Scan(&userId, &count); err != nil {
+			log.Println("scan error:", err)
+			continue
+		}
+		stat[userId] = count
+	}
+
+	return stat
+}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	reaction_repository "go-tg-bot/internal/repository"
 	message_repository "go-tg-bot/internal/repository/message"
 	reply_repository "go-tg-bot/internal/repository/reply"
@@ -12,10 +13,12 @@ import (
 	dashboard_service "go-tg-bot/internal/services/dashboard"
 	message_service "go-tg-bot/internal/services/dashboard/messages"
 	"go-tg-bot/internal/services/gigachad"
+	stat_service "go-tg-bot/internal/services/stat"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -42,6 +45,7 @@ func main() {
 	reportRepository := report_repository.NewRepository(db)
 	dashboardService := dashboard_service.NewService(userRepository)
 	messageService := message_service.NewService(replyRepository, userRepository, messageRepository, reactionRepository)
+
 	// Загружаем переменные окружения
 	bot, err := telebot.NewBot(telebot.Settings{
 		Token:  os.Getenv("TELEGRAM_BOT_TOKEN"),
@@ -93,11 +97,27 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	bot.Handle("/week", func(c telebot.Context) error {
+		service := stat_service.NewService(db, *messageRepository)
+		stats := service.WeekStat()
+
+		if len(stats.Stats) == 0 {
+			return nil
+		}
+		var sb strings.Builder
+		sb.WriteString("Итоги недели\n\nТоп сообщений\n\n")
+		for _, stat := range stats.Stats {
+			sb.WriteString(fmt.Sprintf("Юзер: %d — %d\n", stat.UserId, stat.MessageCount))
+		}
+
+		return c.Send(sb.String())
+	})
+
 	// Telegram Webhook: используем bot.HandleUpdate
 	mux.HandleFunc("/bot", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("BOT")
 		bodyBytes, _ := io.ReadAll(r.Body)
-	
+
 		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		var update telebot.Update
 
