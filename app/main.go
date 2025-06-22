@@ -84,7 +84,7 @@ func main() {
 		stats := service.WeekStat()
 
 		if len(stats.Stats) == 0 {
-			return nil
+			return
 		}
 		var sb strings.Builder
 		sb.WriteString("✨ <b>Итоги недели</b> ✨\n\n")
