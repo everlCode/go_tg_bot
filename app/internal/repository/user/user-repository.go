@@ -97,3 +97,24 @@ func (ur *UserRepository) AddRespect(id int, add int) {
 		log.Print(err)
 	}
 }
+
+func (ur *UserRepository) All() []User {
+	rows, err := ur.db.Query(`
+		SELECT telegram_id, name, message_count, respect, action
+		FROM users;
+	`)
+	if err != nil {
+		log.Println("error:", err)
+	}
+
+	var users []User
+	for rows.Next() {
+		user := User{}
+		rows.Scan(&user.ID, &user.Name, &user.MessageCount, &user.Respect, &user.Action)
+		users = append(users, user)
+	}
+
+	return users
+}
+
+

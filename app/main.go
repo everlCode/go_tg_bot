@@ -98,7 +98,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	bot.Handle("/week", func(c telebot.Context) error {
-		service := stat_service.NewService(db, *messageRepository)
+		service := stat_service.NewService(db, *messageRepository, userRepository)
 		stats := service.WeekStat()
 
 		if len(stats.Stats) == 0 {
@@ -107,7 +107,7 @@ func main() {
 		var sb strings.Builder
 		sb.WriteString("Итоги недели\n\nТоп сообщений\n\n")
 		for _, stat := range stats.Stats {
-			sb.WriteString(fmt.Sprintf("Юзер: %d — %d\n", stat.UserId, stat.MessageCount))
+			sb.WriteString(fmt.Sprintf("%d : — %d\n", stat.UserName, stat.MessageCount))
 		}
 
 		return c.Send(sb.String())

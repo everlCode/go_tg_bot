@@ -88,7 +88,7 @@ func (rep MessageRepository) MessageCountForWeek() map[int]int {
 		GROUP BY from_user
 		ORDER BY COUNT(*) DESC;
 	`)
-	if (err != nil) {
+	if err != nil {
 		log.Println(err)
 		return nil
 	}
