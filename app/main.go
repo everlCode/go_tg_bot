@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	reaction_repository "go-tg-bot/internal/repository"
 	message_repository "go-tg-bot/internal/repository/message"
 	reply_repository "go-tg-bot/internal/repository/reply"
@@ -18,8 +17,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"sort"
-	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -83,52 +80,20 @@ func main() {
 		service := stat_service.NewService(db, *messageRepository, userRepository, *reactionRepository)
 		stats := service.WeekStat()
 
-		if len(stats.Stats) == 0 {
-			return
-		}
-		var sb strings.Builder
-		sb.WriteString("✨ <b>Итоги недели</b> ✨\n\n")
-		sb.WriteString("🏆 <b>Топ сообщений</b>\n\n")
+		response := service.FormatDataForWeekReport(stats)
 
-		for i, stat := range stats.Stats {
-			medal := ""
-			switch i {
-			case 0:
-				medal = "🥇"
-			case 1:
-				medal = "🥈"
-			case 2:
-				medal = "🥉"
-			default:
-				medal = "🔹"
-			}
-			sb.WriteString(fmt.Sprintf("%s <b>%s</b> — <b>%d</b>\n", medal, stat.UserName, stat.MessageCount))
-		}
-
-		sort.Slice(stats.Stats, func(i, j int) bool {
-			return stats.Stats[i].ReactionStat.GetReactionCount > stats.Stats[j].ReactionStat.GetReactionCount
-		})
-
-		sb.WriteString("\n")
-		sb.WriteString("🏆 <b>Топ полученных реакций</b>\n\n")
-		for i, stat := range stats.Stats {
-			medal := ""
-			switch i {
-			case 0:
-				medal = "🥇"
-			case 1:
-				medal = "🥈"
-			case 2:
-				medal = "🥉"
-			default:
-				medal = "🔹"
-			}
-			sb.WriteString(fmt.Sprintf("%s <b>%s</b> — <b>%d</b>\n", medal, stat.UserName, stat.ReactionStat.GetReactionCount))
-		}
-
-		bot.Send(telebot.ChatID(-4204971428), sb.String())
+		bot.Send(telebot.ChatID(-4204971428), response)
 	})
 	c.Start()
+
+	bot.Handle("/week", func(c telebot.Context) error {
+		service := stat_service.NewService(db, *messageRepository, userRepository, *reactionRepository)
+		stats := service.WeekStat()
+
+		response := service.FormatDataForWeekReport(stats)
+
+		return c.Send(response)
+	})
 
 	// Регистрируем хендлеры
 	bot.Handle("/start", func(c telebot.Context) error {

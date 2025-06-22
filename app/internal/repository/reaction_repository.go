@@ -17,8 +17,9 @@ type Reaction struct {
 }
 
 type ReactionStat struct {
-	UserID    int
-	GetReactionCount int
+	UserID            int
+	GetReactionCount  int
+	MadeReactionCount int
 }
 
 func NewRepository(db *sql.DB) *ReactionRepository {
@@ -43,8 +44,8 @@ func (rr *ReactionRepository) All() *sql.Rows {
 	return rows
 }
 
-func (repo *ReactionRepository) GetReactionsCountByMessageAuthor() map[int]ReactionStat {
-    rows, err := repo.db.Query(`
+func (repo *ReactionRepository) ReactionStat() map[int]ReactionStat {
+	rows, err := repo.db.Query(`
         SELECT u.telegram_id, COUNT(*) AS reaction_count
 		FROM reactions r
 		INNER JOIN messages m ON m.message_id = r.message_id
@@ -53,7 +54,6 @@ func (repo *ReactionRepository) GetReactionsCountByMessageAuthor() map[int]React
 		GROUP BY u.telegram_id
 		ORDER BY reaction_count DESC;
     `)
-    
 	if err != nil {
 		log.Println("error:", err)
 	}
@@ -63,6 +63,33 @@ func (repo *ReactionRepository) GetReactionsCountByMessageAuthor() map[int]React
 		stat := ReactionStat{}
 		rows.Scan(&stat.UserID, &stat.GetReactionCount)
 		stats[stat.UserID] = stat
+	}
+	rows.Close()
+
+	rowws, err := repo.db.Query(`
+        SELECT u.telegram_id, COUNT(*) AS reaction_count
+		FROM reactions r
+		INNER JOIN messages m ON m.message_id = r.message_id
+		INNER JOIN users u ON u.telegram_id = r.user_id
+		WHERE m.send_at >= STRFTIME("%s", "now", "-7 days")
+		GROUP BY u.telegram_id
+		ORDER BY reaction_count DESC;
+    `)
+	if err != nil {
+		log.Println("error:", err)
+	}
+	defer rowws.Close()
+
+	for rowws.Next() {
+		var id, count int
+		rowws.Scan(&id, &count)
+
+		stat, ok := stats[id]
+		if !ok {
+			continue
+		}
+		stat.MadeReactionCount = count
+		stats[id] = stat
 	}
 
 	return stats
