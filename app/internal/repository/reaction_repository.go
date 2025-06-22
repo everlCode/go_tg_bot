@@ -16,6 +16,11 @@ type Reaction struct {
 	Text      string
 }
 
+type ReactionStat struct {
+	UserID    int
+	GetReactionCount int
+}
+
 func NewRepository(db *sql.DB) *ReactionRepository {
 	return &ReactionRepository{
 		db: db,
@@ -36,4 +41,29 @@ func (rr *ReactionRepository) All() *sql.Rows {
 	}
 
 	return rows
+}
+
+func (repo *ReactionRepository) GetReactionsCountByMessageAuthor() map[int]ReactionStat {
+    rows, err := repo.db.Query(`
+        SELECT u.telegram_id, COUNT(*) AS reaction_count
+		FROM reactions r
+		INNER JOIN messages m ON m.message_id = r.message_id
+		INNER JOIN users u ON u.telegram_id = m.from_user
+		WHERE m.send_at >= STRFTIME("%s", "now", "-7 days")
+		GROUP BY u.telegram_id
+		ORDER BY reaction_count DESC;
+    `)
+    
+	if err != nil {
+		log.Println("error:", err)
+	}
+
+	stats := make(map[int]ReactionStat)
+	for rows.Next() {
+		stat := ReactionStat{}
+		rows.Scan(&stat.UserID, &stat.GetReactionCount)
+		stats[stat.UserID] = stat
+	}
+
+	return stats
 }

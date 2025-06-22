@@ -18,6 +18,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -98,7 +99,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	bot.Handle("/week", func(c telebot.Context) error {
-		service := stat_service.NewService(db, *messageRepository, userRepository)
+		service := stat_service.NewService(db, *messageRepository, userRepository, *reactionRepository)
 		stats := service.WeekStat()
 
 		if len(stats.Stats) == 0 {
@@ -121,6 +122,27 @@ func main() {
 				medal = "🔹"
 			}
 			sb.WriteString(fmt.Sprintf("%s <b>%s</b> — <b>%d</b>\n", medal, stat.UserName, stat.MessageCount))
+		}
+
+		sort.Slice(stats.Stats, func(i, j int) bool {
+			return stats.Stats[i].ReactionStat.GetReactionCount > stats.Stats[j].ReactionStat.GetReactionCount
+		})
+
+		sb.WriteString("\n\n")
+		sb.WriteString("🏆 <b>Топ полученных реакций</b>\n\n")
+		for i, stat := range stats.Stats {
+			medal := ""
+			switch i {
+			case 0:
+				medal = "🥇"
+			case 1:
+				medal = "🥈"
+			case 2:
+				medal = "🥉"
+			default:
+				medal = "🔹"
+			}
+			sb.WriteString(fmt.Sprintf("%s <b>%s</b> — <b>%d</b>\n", medal, stat.UserName, stat.ReactionStat.GetReactionCount))
 		}
 
 		return c.Send(sb.String(), telebot.ModeHTML)
