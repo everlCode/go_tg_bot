@@ -47,12 +47,12 @@ func (rs *MessageService) Handle(c telebot.Context) {
 	msgId := msg.ID
 	name := msg.Sender.FirstName
 	text := rs.getText(msg)
-	
+
 	userExist := rs.ur.UserExist(id)
 	if !userExist {
 		rs.ur.CreateUser(id, name, 1)
 	}
-	
+
 	rs.mr.Create(msgId, id, text, msg.Unixtime)
 	rs.ur.AddUserMessageCount(id)
 
@@ -148,8 +148,8 @@ func (service MessageService) FormatMessagesForGigaChat(messages []message_repos
 		788769106:  "Макар",
 	}
 
-	content := `Прочитай переписку в чате и напиши короткое резюме этой беседы. 
-	Вынеси основную мысль за день. Начни с "Сегодня самое интересное в чате:"
+	content := `Прочитай переписку в чате за сегодня. Кратко опиши о чем речь. Прокомментриуй, что ты думаешь по этому поводу. Добавь юмора, если уместно.
+	 Начни с "Сегодня самое интересное в чате:"
 	Вот сообщения: \n`
 
 	for _, msg := range messages {
