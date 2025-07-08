@@ -148,7 +148,7 @@ func (service MessageService) FormatMessagesForGigaChat(messages []message_repos
 		788769106:  "Макар",
 	}
 
-	content := `Прочитай переписку в чате за сегодня. На осонове сообщений предложи тему для обсуждения."
+	content := `Прочитай переписку в чате друзей за сегодня. На осонове сообщений составь краткий обзор, уложись в 25 слов."
 	Вот сообщения: \n`
 
 	for _, msg := range messages {
