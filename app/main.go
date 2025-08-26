@@ -76,6 +76,25 @@ func main() {
 		reportRepository.Create(txt)
 	})
 
+	c.AddFunc("33 21 * * *", func() {
+		gigaChatApi, _ := gigachad.NewApi()
+		report, err := reportRepository.GetLast()
+		if err != nil {
+			log.Fatal("Ошибка получения последнего отчета:", err)
+		}
+
+		imgData, _ := gigaChatApi.GenerateImage("Нарисуй изображение по отчету за день: " + report.Text)
+
+		photo := &telebot.Photo{
+			File:    telebot.FromReader(bytes.NewReader(imgData)),
+			Caption: "Изображение дня!",
+		}
+		_, e := bot.Send(telebot.ChatID(-4204971428), photo)
+		if e != nil {
+			log.Fatal("Ошибка получения последнего отчета:", err)
+		}
+	})
+
 	c.AddFunc("0 8 * * 1", func() {
 		service := stat_service.NewService(db, *messageRepository, userRepository, *reactionRepository)
 		stats := service.WeekStat()
