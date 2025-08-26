@@ -5,11 +5,13 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -27,8 +29,9 @@ type TokenResponse struct {
 }
 
 type GigaChatRequest struct {
-	Model    string            `json:"model"`
-	Messages []GigaChatMessage `json:"messages"`
+	Model        string            `json:"model"`
+	Messages     []GigaChatMessage `json:"messages"`
+	FunctionCall string            `json:"function_call"`
 }
 
 type GigaChatMessage struct {
@@ -41,6 +44,7 @@ type GigaChatResponse struct {
 		Message struct {
 			Content string `json:"content"`
 			Role    string `json:"role"`
+			FileID  string `json:"file_id,omitempty"`
 		} `json:"message"`
 		Index        int    `json:"index"`
 		FinishReason string `json:"finish_reason"`
@@ -54,6 +58,21 @@ type GigaChatResponse struct {
 		TotalTokens           int `json:"total_tokens"`
 		PrecachedPromptTokens int `json:"precached_prompt_tokens"`
 	} `json:"usage"`
+}
+
+type GigaChatImageRequest struct {
+	Prompt         string `json:"prompt"`
+	N              int    `json:"n"`
+	Size           string `json:"size"`            // например: "1024x1024"
+	ResponseFormat string `json:"response_format"` // "url" или "b64_json"
+}
+
+type GigaChatImageResponse struct {
+	Created int64 `json:"created"`
+	Data    []struct {
+		URL     string `json:"url,omitempty"`
+		B64Json string `json:"b64_json,omitempty"`
+	} `json:"data"`
 }
 
 func NewApi() (*GigaChatApi, error) {
@@ -107,7 +126,7 @@ func NewApi() (*GigaChatApi, error) {
 	}, nil
 }
 
-func (gigaChat GigaChatApi) Send(content string) (GigaChatResponse) {
+func (gigaChat GigaChatApi) Send(content string) GigaChatResponse {
 	url := "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
 
 	request := GigaChatRequest{
@@ -138,7 +157,6 @@ func (gigaChat GigaChatApi) Send(content string) (GigaChatResponse) {
 		log.Println(err)
 	}
 
-	
 	data, er := io.ReadAll(response.Body)
 	if er != nil {
 		log.Println(er)
@@ -157,7 +175,7 @@ func (gigaChat GigaChatApi) Send(content string) (GigaChatResponse) {
 
 func (GigaChatApi GigaChatApi) Request(request http.Request) (*http.Response, error) {
 	client := &http.Client{
-		Timeout: 10 * time.Second,
+		Timeout: 40 * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true, // ⚠️ ТОЛЬКО ДЛЯ ТЕСТОВ!
@@ -172,4 +190,80 @@ func (GigaChatApi GigaChatApi) Request(request http.Request) (*http.Response, er
 	}
 
 	return resp, nil
+}
+
+func (gigaChat GigaChatApi) GenerateImage(prompt string) ([]byte, error) {
+	// 1. Запрос на генерацию изображения
+	request := GigaChatRequest{
+		Model:        "GigaChat",
+		Messages:     []GigaChatMessage{{Role: "user", Content: prompt}},
+		FunctionCall: "auto",
+	}
+	body, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("POST", "https://gigachat.devices.sberbank.ru/api/v1/chat/completions", bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Authorization", "Bearer "+gigaChat.AccessToken)
+
+	log.Println("here")
+	resp, err := gigaChat.Request(*req)
+
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	respBody, err := io.ReadAll(resp.Body)
+
+	log.Println(string(respBody), err)
+	if err != nil {
+		return nil, err
+	}
+	var chatResp GigaChatResponse
+	if err := json.Unmarshal(respBody, &chatResp); err != nil {
+		return nil, err
+	}
+
+	// 2. Получаем file_id
+	var imageID string
+	for _, choice := range chatResp.Choices {
+		content := choice.Message.Content
+		// Регулярка для поиска uuid4 внутри src=""
+		re := regexp.MustCompile(`<img[^>]+src="([a-f0-9\-]{36})"`)
+		m := re.FindStringSubmatch(content)
+		if len(m) == 2 {
+			imageID = m[1]
+			break
+		}
+	}
+	if imageID == "" {
+		return nil, fmt.Errorf("image uuid not found in response")
+	}
+	log.Println("Image UUID:", imageID)
+	// 3. Скачиваем изображение
+	fileUrl := "https://gigachat.devices.sberbank.ru/api/v1/files/" + imageID + "/content"
+	fileReq, err := http.NewRequest("GET", fileUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+	fileReq.Header.Add("Authorization", "Bearer "+gigaChat.AccessToken)
+	fileReq.Header.Add("Accept", "image/jpeg")
+
+	fileResp, err := gigaChat.Request(*fileReq)
+
+	if err != nil {
+		return nil, err
+	}
+	defer fileResp.Body.Close()
+	imgData, err := io.ReadAll(fileResp.Body)
+	log.Println(imgData)
+	if err != nil {
+		return nil, err
+	}
+	return imgData, nil
 }

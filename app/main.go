@@ -144,6 +144,25 @@ func main() {
 		http.ServeFile(w, r, "./static/dashboard.html")
 	})
 
+	mux.HandleFunc("/image", func(w http.ResponseWriter, r *http.Request) {
+		gigaChatApi, _ := gigachad.NewApi()
+		report, err := reportRepository.GetLast()
+		if err != nil {
+			log.Fatal("Ошибка получения последнего отчета:", err)
+		}
+
+		imgData, _ := gigaChatApi.GenerateImage("Нарисуй изображение по отчету за день: " + report.Text)
+
+		photo := &telebot.Photo{
+			File:    telebot.FromReader(bytes.NewReader(imgData)),
+			Caption: "Изображение дня!",
+		}
+		_, e := bot.Send(telebot.ChatID(1425523987), photo)
+		if e != nil {
+			log.Fatal("Ошибка получения последнего отчета:", err)
+		}
+	})
+
 	mux.HandleFunc("/gigachat", func(w http.ResponseWriter, r *http.Request) {
 		messages := messageRepository.GetMessagesForToday()
 		if len(messages) == 0 {

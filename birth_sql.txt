@@ -1,0 +1,60 @@
+TOP BOOSTER
+select user_id, u.name, count(*)
+from reactions r
+join users u on r.user_id = u.telegram_id
+where r.reaction in ('🔥', '👍', '❤')
+group by user_id, u.name
+order by 3 desc
+
+TOP CLOWN
+select m.from_user, u.name, count(*)
+from reactions r
+join messages m on m.message_id = r.message_id 
+join users u on m.from_user = u.telegram_id
+where r.reaction in ('🤡')
+group by m.from_user, u.name
+order by 3 desc
+
+TOP HATER
+select r.user_id, u.name, count(*)
+from reactions r
+join users u on r.user_id = u.telegram_id
+where r.reaction in ('👎', '💩', '❤')
+group by r.user_id, u.name
+order by 3 desc
+
+TOP LONGCHARS
+SELECT 
+    m.from_user,
+    u.name,
+    SUM(LENGTH(m.text)) AS total_chars
+FROM messages m
+JOIN users u ON u.telegram_id = m.from_user
+GROUP BY m.from_user, u.name
+order by 3 desc
+
+TOP VIDEO
+SELECT 
+m.from_user, u.name, count(*)
+FROM messages m
+JOIN users u ON u.telegram_id = m.from_user
+where m.text = 'Видео кружок'
+GROUP BY m.from_user, u.name
+order by 3 desc
+
+TOP REACTOR
+select user_id, u.name, count(*)
+from reactions r
+join users u on r.user_id = u.telegram_id
+group by user_id, u.name
+order by 3 desc
+
+MVP
+SELECT 
+    s.from_user,
+    u.name,
+    CAST(u.respect AS REAL) / COUNT(*) AS respect_per_message
+FROM messages s
+JOIN users u ON s.from_user = u.telegram_id
+GROUP BY s.from_user, u.name
+ORDER BY respect_per_message DESC;

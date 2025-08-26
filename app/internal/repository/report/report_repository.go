@@ -27,3 +27,14 @@ func (mr *ReportRepository) Create(text string) {
 		log.Println(err)
 	}
 }
+
+func (mr *ReportRepository) GetLast() (*Report, error) {
+	row := mr.db.QueryRow("SELECT id, text, created_at FROM reports ORDER BY created_at DESC LIMIT 1")
+	var report Report
+	err := row.Scan(&report.ID, &report.Text, &report.CreatedAt)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return &report, nil
+}
