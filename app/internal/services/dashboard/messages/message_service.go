@@ -32,7 +32,7 @@ func NewService(
 		ur:                 ur,
 		mr:                 *mr,
 		reactionRepository: *reactionRepository,
-		PositiveEmodji:     []string{"👍", "🔥", "\u2764"},
+		PositiveEmodji:     []string{"👍", "🔥", "\u2764", "🥰", "❤️‍🔥"},
 		NegativeEmodji:     []string{"👎", "💩"},
 	}
 }
