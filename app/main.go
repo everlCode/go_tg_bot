@@ -157,7 +157,7 @@ func main() {
 			File:    telebot.FromReader(bytes.NewReader(imgData)),
 			Caption: "Изображение дня!",
 		}
-		_, e := bot.Send(telebot.ChatID(1425523987), photo)
+		_, e := bot.Send(telebot.ChatID(-4204971428), photo)
 		if e != nil {
 			log.Fatal("Ошибка получения последнего отчета:", err)
 		}

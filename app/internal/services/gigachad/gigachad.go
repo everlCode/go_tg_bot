@@ -261,7 +261,7 @@ func (gigaChat GigaChatApi) GenerateImage(prompt string) ([]byte, error) {
 	}
 	defer fileResp.Body.Close()
 	imgData, err := io.ReadAll(fileResp.Body)
-	log.Println(imgData)
+
 	if err != nil {
 		return nil, err
 	}
