@@ -87,7 +87,7 @@ func main() {
 	})
 
 	c.AddFunc("33 21 * * *", func() {
-		
+
 	})
 
 	c.AddFunc("0 8 * * 1", func() {
@@ -159,28 +159,24 @@ func main() {
 	})
 
 	mux.HandleFunc("/image", func(w http.ResponseWriter, r *http.Request) {
-		// messages := messageRepository.GetMessagesForToday()
+		messages := messageRepository.GetMessagesForToday()
 
-	
-	
-		// content := messageService.FormatMessagesForGigaChat(messages)
+		content := messageService.FormatMessagesForGigaChat(messages)
 
 		gigaChatApi, _ := gigachad.NewApi()
-		// result := gigaChatApi.Send(content)
+		result := gigaChatApi.Send(content)
 
-		// txt := result.Choices[0].Message.Content
+		txt := result.Choices[0].Message.Content
 
-		report, _ := reportRepository.GetLast()
-		
+		reportRepository.Create(txt)
 
-
-		imgData, _ := gigaChatApi.GenerateImage("Нарисуй изображение по отчету за день: " + report.Text)
+		imgData, _ := gigaChatApi.GenerateImage("Нарисуй изображение по отчету за день: " + txt)
 
 		photo := &telebot.Photo{
 			File:    telebot.FromReader(bytes.NewReader(imgData)),
-			Caption: report.Text,
+			Caption: txt,
 		}
-		_, e := bot.Send(telebot.ChatID(1425523987), photo)
+		_, e := bot.Send(telebot.ChatID(-4204971428), photo)
 		if e != nil {
 			log.Fatal("Ошибка получения последнего отчета:", err)
 		}
