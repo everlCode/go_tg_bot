@@ -72,27 +72,22 @@ func main() {
 
 		txt := result.Choices[0].Message.Content
 
-		bot.Send(telebot.ChatID(-4204971428), txt)
 		reportRepository.Create(txt)
-	})
 
-	c.AddFunc("33 21 * * *", func() {
-		gigaChatApi, _ := gigachad.NewApi()
-		report, err := reportRepository.GetLast()
-		if err != nil {
-			log.Fatal("Ошибка получения последнего отчета:", err)
-		}
-
-		imgData, _ := gigaChatApi.GenerateImage("Нарисуй изображение по отчету за день: " + report.Text)
+		imgData, _ := gigaChatApi.GenerateImage("Нарисуй изображение по отчету за день: " + txt)
 
 		photo := &telebot.Photo{
 			File:    telebot.FromReader(bytes.NewReader(imgData)),
-			Caption: "Изображение дня!",
+			Caption: txt,
 		}
 		_, e := bot.Send(telebot.ChatID(-4204971428), photo)
 		if e != nil {
 			log.Fatal("Ошибка получения последнего отчета:", err)
 		}
+	})
+
+	c.AddFunc("33 21 * * *", func() {
+		
 	})
 
 	c.AddFunc("0 8 * * 1", func() {
@@ -164,19 +159,28 @@ func main() {
 	})
 
 	mux.HandleFunc("/image", func(w http.ResponseWriter, r *http.Request) {
+		// messages := messageRepository.GetMessagesForToday()
+
+	
+	
+		// content := messageService.FormatMessagesForGigaChat(messages)
+
 		gigaChatApi, _ := gigachad.NewApi()
-		report, err := reportRepository.GetLast()
-		if err != nil {
-			log.Fatal("Ошибка получения последнего отчета:", err)
-		}
+		// result := gigaChatApi.Send(content)
+
+		// txt := result.Choices[0].Message.Content
+
+		report, _ := reportRepository.GetLast()
+		
+
 
 		imgData, _ := gigaChatApi.GenerateImage("Нарисуй изображение по отчету за день: " + report.Text)
 
 		photo := &telebot.Photo{
 			File:    telebot.FromReader(bytes.NewReader(imgData)),
-			Caption: "Изображение дня!",
+			Caption: report.Text,
 		}
-		_, e := bot.Send(telebot.ChatID(-4204971428), photo)
+		_, e := bot.Send(telebot.ChatID(1425523987), photo)
 		if e != nil {
 			log.Fatal("Ошибка получения последнего отчета:", err)
 		}

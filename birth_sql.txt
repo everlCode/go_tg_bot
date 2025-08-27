@@ -15,6 +15,15 @@ where r.reaction in ('🤡')
 group by m.from_user, u.name
 order by 3 desc
 
+TOP FUNNY
+select m.from_user, u.name, count(*)
+from reactions r
+join messages m on m.message_id = r.message_id 
+join users u on m.from_user = u.telegram_id
+where r.reaction in ('😁')
+group by m.from_user, u.name
+order by 3 desc
+
 TOP HATER
 select r.user_id, u.name, count(*)
 from reactions r
