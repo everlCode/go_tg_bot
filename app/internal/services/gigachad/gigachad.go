@@ -29,9 +29,8 @@ type TokenResponse struct {
 }
 
 type GigaChatRequest struct {
-	Model        string            `json:"model"`
-	Messages     []GigaChatMessage `json:"messages"`
-	FunctionCall string            `json:"function_call"`
+	Model    string            `json:"model"`
+	Messages []GigaChatMessage `json:"messages"`
 }
 
 type GigaChatMessage struct {
@@ -44,7 +43,6 @@ type GigaChatResponse struct {
 		Message struct {
 			Content string `json:"content"`
 			Role    string `json:"role"`
-			FileID  string `json:"file_id,omitempty"`
 		} `json:"message"`
 		Index        int    `json:"index"`
 		FinishReason string `json:"finish_reason"`
@@ -61,10 +59,9 @@ type GigaChatResponse struct {
 }
 
 type GigaChatImageRequest struct {
-	Prompt         string `json:"prompt"`
-	N              int    `json:"n"`
-	Size           string `json:"size"`            // например: "1024x1024"
-	ResponseFormat string `json:"response_format"` // "url" или "b64_json"
+	Model        string            `json:"model"`
+	Messages     []GigaChatMessage `json:"messages"`
+	FunctionCall string            `json:"function_call"`
 }
 
 type GigaChatImageResponse struct {
@@ -145,6 +142,7 @@ func (gigaChat GigaChatApi) Send(content string) GigaChatResponse {
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+
 	if err != nil {
 		log.Println(err)
 	}
@@ -153,6 +151,7 @@ func (gigaChat GigaChatApi) Send(content string) GigaChatResponse {
 	req.Header.Add("Authorization", "Bearer "+gigaChat.AccessToken)
 
 	response, err := gigaChat.Request(*req)
+
 	if err != nil {
 		log.Println(err)
 	}
@@ -161,7 +160,7 @@ func (gigaChat GigaChatApi) Send(content string) GigaChatResponse {
 	if er != nil {
 		log.Println(er)
 	}
-
+	
 	resp := GigaChatResponse{}
 	e := json.Unmarshal(data, &resp)
 	if err != nil {
@@ -194,7 +193,7 @@ func (GigaChatApi GigaChatApi) Request(request http.Request) (*http.Response, er
 
 func (gigaChat GigaChatApi) GenerateImage(prompt string) ([]byte, error) {
 	// 1. Запрос на генерацию изображения
-	request := GigaChatRequest{
+	request := GigaChatImageRequest{
 		Model:        "GigaChat",
 		Messages:     []GigaChatMessage{{Role: "user", Content: prompt}},
 		FunctionCall: "auto",
@@ -211,7 +210,6 @@ func (gigaChat GigaChatApi) GenerateImage(prompt string) ([]byte, error) {
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Authorization", "Bearer "+gigaChat.AccessToken)
 
-	log.Println("here")
 	resp, err := gigaChat.Request(*req)
 
 	if err != nil {
