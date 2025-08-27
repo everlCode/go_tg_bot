@@ -160,7 +160,10 @@ func main() {
 
 	mux.HandleFunc("/image", func(w http.ResponseWriter, r *http.Request) {
 		messages := messageRepository.GetMessagesForToday()
-
+		if len(messages) == 0 {
+			log.Println("Сегодня сообщений нет")
+			return
+		}
 		content := messageService.FormatMessagesForGigaChat(messages)
 
 		gigaChatApi, _ := gigachad.NewApi()
