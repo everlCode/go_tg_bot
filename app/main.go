@@ -164,17 +164,18 @@ func main() {
 			log.Println("Сегодня сообщений нет")
 			return
 		}
+		log.Println("Count " + string(len(messages)))
 		content := messageService.FormatMessagesForGigaChat(messages)
-
+		log.Println(content)
 		gigaChatApi, _ := gigachad.NewApi()
 		result := gigaChatApi.Send(content)
 
 		txt := result.Choices[0].Message.Content
-
+		log.Println(txt)
 		reportRepository.Create(txt)
-
+		log.Println("generate")
 		imgData, _ := gigaChatApi.GenerateImage("Нарисуй изображение по отчету за день: " + txt)
-
+		log.Println(imgData)
 		photo := &telebot.Photo{
 			File:    telebot.FromReader(bytes.NewReader(imgData)),
 			Caption: txt,
