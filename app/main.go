@@ -64,22 +64,28 @@ func main() {
 
 	c.AddFunc("30 21 * * *", func() {
 		messages := messageRepository.GetMessagesForToday()
+		if len(messages) == 0 {
+			log.Println("Сегодня сообщений нет")
+			return
+		}
 
 		content := messageService.FormatMessagesForGigaChat(messages)
 
 		gigaChatApi, _ := gigachad.NewApi()
+
 		result := gigaChatApi.Send(content)
 
 		txt := result.Choices[0].Message.Content
 
 		reportRepository.Create(txt)
 
-		imgData, _ := gigaChatApi.GenerateImage("Нарисуй изображение по отчету за день: " + txt)
+		imgData, _ := gigaChatApi.GenerateImage("Нарисуй изображение по отчету из нашено чата: " + txt)
 
 		photo := &telebot.Photo{
 			File:    telebot.FromReader(bytes.NewReader(imgData)),
 			Caption: txt,
 		}
+		log.Println("DONE!!!!!!!!!")
 		_, e := bot.Send(telebot.ChatID(-4204971428), photo)
 		if e != nil {
 			log.Fatal("Ошибка получения последнего отчета:", err)
@@ -182,7 +188,7 @@ func main() {
 			Caption: txt,
 		}
 		log.Println("DONE!!!!!!!!!")
-		_, e := bot.Send(telebot.ChatID(1425523987), photo)
+		_, e := bot.Send(telebot.ChatID(-4204971428), photo)
 		if e != nil {
 			log.Fatal("Ошибка получения последнего отчета:", err)
 		}
