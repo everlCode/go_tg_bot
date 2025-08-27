@@ -45,10 +45,10 @@ func (ds DashboardService) UsersTop() string {
 	users := ds.DashboardData()
 
 	var b strings.Builder
-	for _, u := range users {
+	for i, u := range users {
 		b.WriteString(fmt.Sprintf(
-			"👤 %s\n   📨 Сообщений: %d\n   🏅 Респект:   %d\n\n",
-			u.Name, u.MessageCount, u.Respect,
+			"%d. %s — ✉️ %d | 🏅 %d\n",
+			i+1, u.Name, u.MessageCount, u.Respect,
 		))
 	}
 
