@@ -79,21 +79,26 @@ func main() {
 
 		reportRepository.Create(txt)
 
-		imgData, _ := gigaChatApi.GenerateImage("Нарисуй изображение по отчету из нашено чата: " + txt)
+		imgData, e := gigaChatApi.GenerateImage("Нарисуй изображение по отчету из нашено чата: " + txt)
+		if e != nil || len(imgData) == 0 {
+			// Если нет изображения — отправляем только текст
+			_, e := bot.Send(telebot.ChatID(-4204971428), txt)
+			if e != nil {
+				log.Println("Ошибка при отправке текста:", e)
+			}
+			log.Println("DONE (только текст)")
+			return
+		}
 
 		photo := &telebot.Photo{
 			File:    telebot.FromReader(bytes.NewReader(imgData)),
 			Caption: txt,
 		}
 		log.Println("DONE!!!!!!!!!")
-		_, e := bot.Send(telebot.ChatID(-4204971428), photo)
-		if e != nil {
-			log.Fatal("Ошибка получения последнего отчета:", err)
+		_, er := bot.Send(telebot.ChatID(-4204971428), photo)
+		if er != nil {
+			log.Fatal("Ошибка получения последнего отчета:", bytes.ErrTooLarge)
 		}
-	})
-
-	c.AddFunc("33 21 * * *", func() {
-
 	})
 
 	c.AddFunc("0 8 * * 1", func() {
@@ -181,16 +186,25 @@ func main() {
 
 		reportRepository.Create(txt)
 
-		imgData, _ := gigaChatApi.GenerateImage("Нарисуй изображение по отчету из нашено чата: " + txt)
+		imgData, e := gigaChatApi.GenerateImage("Нарисуй изображение по отчету из нашено чата: " + txt)
+		if e != nil || len(imgData) == 0 {
+			// Если нет изображения — отправляем только текст
+			_, e := bot.Send(telebot.ChatID(-4204971428), txt)
+			if e != nil {
+				log.Println("Ошибка при отправке текста:", e)
+			}
+			log.Println("DONE (только текст)")
+			return
+		}
 
 		photo := &telebot.Photo{
 			File:    telebot.FromReader(bytes.NewReader(imgData)),
 			Caption: txt,
 		}
 		log.Println("DONE!!!!!!!!!")
-		_, e := bot.Send(telebot.ChatID(-4204971428), photo)
-		if e != nil {
-			log.Fatal("Ошибка получения последнего отчета:", err)
+		_, er := bot.Send(telebot.ChatID(-4204971428), photo)
+		if er != nil {
+			log.Fatal("Ошибка получения последнего отчета:", bytes.ErrTooLarge)
 		}
 	})
 
