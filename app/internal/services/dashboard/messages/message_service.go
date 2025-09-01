@@ -148,10 +148,13 @@ func (service MessageService) FormatMessagesForGigaChat(messages []message_repos
 		788769106:  "Макар",
 	}
 
-	content := `Прочитай переписку в чате друзей за сегодня. На осонове сообщений составь краткий обзор, уложись в 25 слов."
+	content := `Составь на основе сообщений из чата краткую выздержку основных тем за день."
 	Вот сообщения: \n`
 
 	for _, msg := range messages {
+		if msg.Text == "" || msg.Text == "Фото" || msg.Text == "Видео кружок" {
+			continue
+		}
 		text := service.deleteBadWords(msg.Text)
 		time := time.Unix(
 			int64(msg.SendAt),
