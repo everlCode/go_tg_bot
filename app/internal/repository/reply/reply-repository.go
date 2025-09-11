@@ -16,8 +16,8 @@ type Reply struct {
 	Text string
 }
 
-func NewRepository(db *sql.DB) ReplyRepository {
-	return ReplyRepository{
+func NewRepository(db *sql.DB) *ReplyRepository {
+	return &ReplyRepository{
 		db: db,
 	}
 }

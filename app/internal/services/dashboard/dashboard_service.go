@@ -8,11 +8,11 @@ import (
 )
 
 type DashboardService struct {
-	ur user_repository.UserRepository
+	ur user_repository.Repository
 }
 
-func NewService(ur user_repository.UserRepository) DashboardService {
-	return DashboardService{ur}
+func NewService(ur user_repository.Repository) *DashboardService {
+	return &DashboardService{ur}
 }
 
 func (ds DashboardService) DashboardData() []user_repository.User {

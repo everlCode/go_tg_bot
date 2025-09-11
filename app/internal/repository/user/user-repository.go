@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-type UserRepository struct {
+type Repository struct {
 	db *sql.DB
 }
 
@@ -18,13 +18,13 @@ type User struct {
 	Action       int     `json:"action"`
 }
 
-func NewRepository(db *sql.DB) UserRepository {
-	return UserRepository{
+func NewRepository(db *sql.DB) *Repository {
+	return &Repository{
 		db: db,
 	}
 }
 
-func (ur *UserRepository) UserExist(telegram_id int64) bool {
+func (ur *Repository) UserExist(telegram_id int64) bool {
 	var exist bool
 	err := ur.db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE telegram_id = ?)", telegram_id).Scan(&exist)
 	if err != nil {
@@ -39,14 +39,14 @@ func (ur *UserRepository) UserExist(telegram_id int64) bool {
 	return false
 }
 
-func (ur *UserRepository) CreateUser(telegram_id int64, name string, message_count int) {
+func (ur *Repository) CreateUser(telegram_id int64, name string, message_count int) {
 	_, err := ur.db.Exec("INSERT INTO users (name, telegram_id, message_count) VALUES (?, ?, ?)", name, telegram_id, message_count)
 	if err != nil {
 		log.Print(err)
 	}
 }
 
-func (ur *UserRepository) UserByTelegramId(telegram_id int64) *User {
+func (ur *Repository) UserByTelegramId(telegram_id int64) *User {
 	log.Println(telegram_id)
 	row := ur.db.QueryRow("SELECT id, name, message_count, respect, action FROM users WHERE telegram_id = ?", telegram_id)
 
@@ -63,21 +63,21 @@ func (ur *UserRepository) UserByTelegramId(telegram_id int64) *User {
 	return &user
 }
 
-func (ur *UserRepository) AddUserMessageCount(telegram_id int64) {
+func (ur *Repository) AddUserMessageCount(telegram_id int64) {
 	_, err := ur.db.Exec("UPDATE users SET message_count = message_count + 1 WHERE telegram_id = ?", telegram_id)
 	if err != nil {
 		log.Print(err)
 	}
 }
 
-func (ur *UserRepository) DecreaseAction(telegram_id int64) {
+func (ur *Repository) DecreaseAction(telegram_id int64) {
 	_, err := ur.db.Exec("UPDATE users SET action = action - 1 WHERE telegram_id = ?", telegram_id)
 	if err != nil {
 		log.Print(err)
 	}
 }
 
-func (ur *UserRepository) GetTopUsers() *sql.Rows {
+func (ur *Repository) GetTopUsers() *sql.Rows {
 	rows, err := ur.db.Query(`
 		SELECT telegram_id, name, message_count, ROUND((message_count * 100.0) / total.total_messages, 2) AS percent, respect, action
 		FROM users,
@@ -91,14 +91,14 @@ func (ur *UserRepository) GetTopUsers() *sql.Rows {
 	return rows
 }
 
-func (ur *UserRepository) AddRespect(id int, add int) {
+func (ur *Repository) AddRespect(id int, add int) {
 	_, err := ur.db.Exec("UPDATE users SET respect = respect + ? WHERE telegram_id = ?", add, id)
 	if err != nil {
 		log.Print(err)
 	}
 }
 
-func (ur *UserRepository) All() []User {
+func (ur *Repository) All() []User {
 	rows, err := ur.db.Query(`
 		SELECT telegram_id, name, message_count, respect, action
 		FROM users;
@@ -116,5 +116,3 @@ func (ur *UserRepository) All() []User {
 
 	return users
 }
-
-

@@ -3,7 +3,7 @@ package stat_service
 import (
 	"database/sql"
 	"fmt"
-	reaction_repository "go-tg-bot/internal/repository"
+	reaction_repository "go-tg-bot/internal/repository/reaction"
 	message_repository "go-tg-bot/internal/repository/message"
 	user_repository "go-tg-bot/internal/repository/user"
 	"sort"
@@ -12,9 +12,9 @@ import (
 
 type StatService struct {
 	db                 *sql.DB
-	messageRepository  message_repository.MessageRepository
-	userRepository     user_repository.UserRepository
-	reactionRepository reaction_repository.ReactionRepository
+	messageRepository  *message_repository.MessageRepository
+	userRepository     *user_repository.Repository
+	reactionRepository *reaction_repository.ReactionRepository
 }
 
 type WeekStat struct {
@@ -30,11 +30,11 @@ type UserStat struct {
 
 func NewService(
 	db *sql.DB,
-	messageRepository message_repository.MessageRepository,
-	userRepository user_repository.UserRepository,
-	reactionRepository reaction_repository.ReactionRepository,
-) StatService {
-	return StatService{
+	messageRepository *message_repository.MessageRepository,
+	userRepository *user_repository.Repository,
+	reactionRepository *reaction_repository.ReactionRepository,
+) *StatService {
+	return &StatService{
 		db:                 db,
 		messageRepository:  messageRepository,
 		userRepository:     userRepository,

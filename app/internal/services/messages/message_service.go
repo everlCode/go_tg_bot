@@ -1,7 +1,7 @@
 package message_service
 
 import (
-	reaction_repository "go-tg-bot/internal/repository"
+	reaction_repository "go-tg-bot/internal/repository/reaction"
 	message_repository "go-tg-bot/internal/repository/message"
 	reply_repository "go-tg-bot/internal/repository/reply"
 	user_repository "go-tg-bot/internal/repository/user"
@@ -14,7 +14,7 @@ import (
 
 type MessageService struct {
 	rr                 reply_repository.ReplyRepository
-	ur                 user_repository.UserRepository
+	ur                 user_repository.Repository
 	mr                 message_repository.MessageRepository
 	reactionRepository reaction_repository.ReactionRepository
 	PositiveEmodji     []string
@@ -23,15 +23,15 @@ type MessageService struct {
 
 func NewService(
 	rr reply_repository.ReplyRepository,
-	ur user_repository.UserRepository,
-	mr *message_repository.MessageRepository,
-	reactionRepository *reaction_repository.ReactionRepository,
-) MessageService {
-	return MessageService{
+	ur user_repository.Repository,
+	mr message_repository.MessageRepository,
+	reactionRepository reaction_repository.ReactionRepository,
+) *MessageService {
+	return &MessageService{
 		rr:                 rr,
 		ur:                 ur,
-		mr:                 *mr,
-		reactionRepository: *reactionRepository,
+		mr:                 mr,
+		reactionRepository: reactionRepository,
 		PositiveEmodji:     []string{"👍", "🔥", "\u2764", "🥰", "❤️‍🔥"},
 		NegativeEmodji:     []string{"👎", "💩"},
 	}
