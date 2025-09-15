@@ -8,6 +8,7 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"os"
 )
 
 type HTTP struct {
@@ -37,11 +38,21 @@ func (h *HTTP) Run(ctx context.Context) error {
 		json.NewEncoder(w).Encode(users)
 	})
 
-	srv := &http.Server{
-		Addr:    ":" + h.cfg.Port,
-		Handler: mux,
-	}
+	env := os.Getenv("ENV")
+	port := os.Getenv("PORT")
+	if env == "production" {
+		certFile := os.Getenv("TLS_CERT")
+		keyFile := os.Getenv("TLS_KEY")
 
-	h.log.Info("starting HTTP server", "port", h.cfg.Port)
-	return srv.ListenAndServe()
+		if certFile == "" || keyFile == "" {
+			log.Fatal("TLS_CERT and TLS_KEY must be set in production")
+		}
+
+		log.Println("Starting HTTPS server on port 443")
+		return http.ListenAndServeTLS(":443", certFile, keyFile, mux)
+	} else {
+		// Локальный режим — обычный HTTP
+		log.Println("Running in local mode on http://localhost:" + port)
+		return http.ListenAndServe(":"+port, mux)
+	}
 }
