@@ -31,7 +31,6 @@ func NewScheduler(services *services.Services, tg *transport.Telegram, log *slog
 }
 
 func (s *Scheduler) Start() {
-	// Пример: каждый день в 21:30
 	_, err := s.cron.AddFunc("0 30 21 * * *", func() {
 		messages := s.repositories.Message.GetMessagesForToday()
 		if len(messages) == 0 {

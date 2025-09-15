@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"log"
 	"log/slog"
 	"net/http"
 
@@ -81,11 +80,9 @@ func (t *Telegram) HandleWebhook(w http.ResponseWriter, r *http.Request) {
 	r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 	var update telebot.Update
 	if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
-		http.Error(w, "55555", http.StatusBadRequest)
 		t.log.Error("telegram webhook decode error", "err", err)
 		return
 	}
-	log.Println("333333333")
 	t.bot.ProcessUpdate(update)
 
 	// костыль: в либе нет обработки реакций
