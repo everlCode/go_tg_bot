@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"log"
 	"log/slog"
 	"net/http"
 
@@ -39,6 +40,7 @@ func NewTelegram(token string, services *services.Services, log *slog.Logger) (*
 }
 
 func (t *Telegram) registerHandlers() {
+	log.Println("register tg handlers")
 	// Команда /start
 	t.bot.Handle("/start", func(c telebot.Context) error {
 		return c.Send(`👋 Добро пожаловать!
@@ -74,6 +76,7 @@ func (t *Telegram) registerHandlers() {
 
 // Webhook HTTP endpoint (для mux.HandleFunc("/bot", ...))
 func (t *Telegram) HandleWebhook(w http.ResponseWriter, r *http.Request) {
+	log.Println("message route bot")
 	bodyBytes, _ := io.ReadAll(r.Body)
 	defer r.Body.Close()
 
