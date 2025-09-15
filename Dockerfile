@@ -14,7 +14,7 @@ RUN go mod download
 COPY app/. .
 
 # Собираем бинарник
-RUN go build -o bot ./cmd/app
+RUN go build -o bot ./cmd/bot
 
 # --- Финишный образ ---
 FROM debian:bullseye-slim
