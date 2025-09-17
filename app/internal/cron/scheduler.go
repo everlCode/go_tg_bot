@@ -22,12 +22,15 @@ type Scheduler struct {
 }
 
 func NewScheduler(services *services.Services, tg *transport.Telegram, log *slog.Logger) *Scheduler {
-	return &Scheduler{
+	scheduler := &Scheduler{
 		cron:     cron.New(cron.WithSeconds()),
 		services: services,
 		log:      log,
 		tg:       tg,
 	}
+	scheduler.Start()
+
+	return scheduler
 }
 
 func (s *Scheduler) Start() {
