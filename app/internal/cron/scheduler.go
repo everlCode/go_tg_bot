@@ -21,12 +21,13 @@ type Scheduler struct {
 	tg           *transport.Telegram
 }
 
-func NewScheduler(services *services.Services, tg *transport.Telegram, log *slog.Logger) *Scheduler {
+func NewScheduler(services *services.Services, repositories *repository.Repositories, tg *transport.Telegram, log *slog.Logger) *Scheduler {
 	scheduler := &Scheduler{
-		cron:     cron.New(cron.WithSeconds()),
-		services: services,
-		log:      log,
-		tg:       tg,
+		cron:         cron.New(cron.WithSeconds()),
+		services:     services,
+		repositories: repositories,
+		log:          log,
+		tg:           tg,
 	}
 	scheduler.Start()
 
@@ -34,7 +35,7 @@ func NewScheduler(services *services.Services, tg *transport.Telegram, log *slog
 }
 
 func (s *Scheduler) Start() {
-	_, err := s.cron.AddFunc("0 30 21 * * *", func() {
+	_, err := s.cron.AddFunc("0 15 22 * * *", func() {
 		messages := s.repositories.Message.GetMessagesForToday()
 		if len(messages) == 0 {
 			log.Println("Сегодня сообщений нет")
