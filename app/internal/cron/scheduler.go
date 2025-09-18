@@ -35,7 +35,7 @@ func NewScheduler(services *services.Services, repositories *repository.Reposito
 }
 
 func (s *Scheduler) Start() {
-	_, err := s.cron.AddFunc("0 15 22 * * *", func() {
+	_, err := s.cron.AddFunc("0 00 23 * * *", func() {
 		messages := s.repositories.Message.GetMessagesForToday()
 		if len(messages) == 0 {
 			log.Println("Сегодня сообщений нет")
@@ -69,7 +69,7 @@ func (s *Scheduler) Start() {
 		log.Println("DONE!!!!!!!!!")
 		_, er := bot.Send(telebot.ChatID(-4204971428), photo)
 		if er != nil {
-			log.Fatal("Ошибка получения последнего отчета:", bytes.ErrTooLarge)
+			log.Fatal("Ошибка получения последнего отчета:", er)
 		}
 	})
 	if err != nil {
