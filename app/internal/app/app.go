@@ -36,7 +36,7 @@ func New(ctx context.Context, cfg *config.Config, log *slog.Logger) (*App, error
 		return nil, err
 	}
 
-	httpSrv := transport.NewHTTP(cfg, services, tg, log)
+	httpSrv := transport.NewHTTP(cfg, repos, services, tg, log)
 	scheduler := cron.NewScheduler(services, repos, tg, log)
 
 	return &App{
