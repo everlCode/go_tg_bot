@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -19,13 +18,14 @@ import (
 )
 
 type GigaChatApi struct {
-	AccessToken string
+	ClientID string
+	ClientSecret string
+	AccessToken AccessToken
 }
 
-type TokenResponse struct {
+type AccessToken struct {
 	AccessToken string `json:"access_token"`
-	ExpiresIn   int    `json:"expires_in"`
-	TokenType   string `json:"token_type"`
+	ExpiresAt   int64    `json:"expires_at"`
 }
 
 type GigaChatRequest struct {
@@ -72,13 +72,19 @@ type GigaChatImageResponse struct {
 	} `json:"data"`
 }
 
-func NewApi() (*GigaChatApi, error) {
-	clientID := os.Getenv("GIGACHAT_CLIENT_ID")
-	clientSecret := os.Getenv("GIGACHAT_CLIENT_SECRET")
+func NewApi(clientID string, clientSecret string) (*GigaChatApi, error) {
+	gigachadApi := &GigaChatApi{
+		ClientID: clientID,
+		ClientSecret: clientSecret,
+	}
+	gigachadApi.getAccessToken()
 
+	return gigachadApi, nil
+}
+
+func (gigaChat GigaChatApi) getAccessToken() AccessToken {
 	// Формируем Basic auth строку
-	auth := base64.StdEncoding.EncodeToString([]byte(clientID + ":" + clientSecret))
-	log.Println(auth)
+	auth := base64.StdEncoding.EncodeToString([]byte(gigaChat.ClientID + ":" + gigaChat.ClientSecret))
 	// Данные формы
 	form := url.Values{}
 	form.Set("scope", "GIGACHAT_API_PERS")
@@ -96,12 +102,11 @@ func NewApi() (*GigaChatApi, error) {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("RqUID", uuid.New().String())
 
-	// HTTP-клиент с отключенной проверкой TLS (аналог curl -k)
 	client := &http.Client{
 		Timeout: 10 * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, // ⚠️ ТОЛЬКО ДЛЯ ТЕСТОВ!
+				InsecureSkipVerify: true,
 			},
 		},
 	}
@@ -115,15 +120,22 @@ func NewApi() (*GigaChatApi, error) {
 
 	// Читаем и выводим тело ответа
 	body, _ := io.ReadAll(resp.Body)
-	tokenResponse := TokenResponse{}
+	log.Println(string(body))
+	tokenResponse := AccessToken{}
 	json.Unmarshal(body, &tokenResponse)
+	gigaChat.AccessToken = tokenResponse
 
-	return &GigaChatApi{
-		tokenResponse.AccessToken,
-	}, nil
+	return tokenResponse
+}
+
+func (gigaChat GigaChatApi) isExpiredToken() bool {
+	return gigaChat.AccessToken.ExpiresAt < time.Now().Unix()
 }
 
 func (gigaChat GigaChatApi) Send(content string) GigaChatResponse {
+	if gigaChat.isExpiredToken() {
+		gigaChat.getAccessToken()
+	}
 	url := "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
 
 	request := GigaChatRequest{
@@ -148,7 +160,7 @@ func (gigaChat GigaChatApi) Send(content string) GigaChatResponse {
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Authorization", "Bearer "+gigaChat.AccessToken)
+	req.Header.Add("Authorization", "Bearer "+gigaChat.AccessToken.AccessToken)
 
 	response, err := gigaChat.Request(*req)
 
@@ -160,7 +172,7 @@ func (gigaChat GigaChatApi) Send(content string) GigaChatResponse {
 	if er != nil {
 		log.Println(er)
 	}
-	
+
 	resp := GigaChatResponse{}
 	e := json.Unmarshal(data, &resp)
 	if err != nil {
@@ -208,7 +220,7 @@ func (gigaChat GigaChatApi) GenerateImage(prompt string) ([]byte, error) {
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Authorization", "Bearer "+gigaChat.AccessToken)
+	req.Header.Add("Authorization", "Bearer "+gigaChat.AccessToken.AccessToken)
 
 	resp, err := gigaChat.Request(*req)
 
@@ -249,7 +261,7 @@ func (gigaChat GigaChatApi) GenerateImage(prompt string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	fileReq.Header.Add("Authorization", "Bearer "+gigaChat.AccessToken)
+	fileReq.Header.Add("Authorization", "Bearer "+gigaChat.AccessToken.AccessToken)
 	fileReq.Header.Add("Accept", "image/jpeg")
 
 	fileResp, err := gigaChat.Request(*fileReq)
