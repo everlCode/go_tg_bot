@@ -35,7 +35,7 @@ func NewScheduler(services *services.Services, repositories *repository.Reposito
 }
 
 func (s *Scheduler) Start() {
-	_, err := s.cron.AddFunc("0 05 16 * * *", func() {
+	_, err := s.cron.AddFunc("0 16 17 * * *", func() {
 		messages := s.repositories.Message.GetMessagesForToday()
 		if len(messages) == 0 {
 			log.Println("Сегодня сообщений нет")

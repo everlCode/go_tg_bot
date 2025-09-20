@@ -160,8 +160,8 @@ func (gigaChat GigaChatApi) Send(content string) GigaChatResponse {
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Authorization", "Bearer "+gigaChat.AccessToken.AccessToken)
-
+	req.Header.Add("Authorization", "Bearer " + gigaChat.AccessToken.AccessToken)
+	log.Println(gigaChat.AccessToken.AccessToken)
 	response, err := gigaChat.Request(*req)
 
 	if err != nil {
