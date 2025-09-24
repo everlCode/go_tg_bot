@@ -82,7 +82,7 @@ func NewApi(clientID string, clientSecret string) (*GigaChatApi, error) {
 	return gigachadApi, nil
 }
 
-func (gigaChat GigaChatApi) getAccessToken() AccessToken {
+func (gigaChat *GigaChatApi) getAccessToken() AccessToken {
 	// Формируем Basic auth строку
 	auth := base64.StdEncoding.EncodeToString([]byte(gigaChat.ClientID + ":" + gigaChat.ClientSecret))
 	// Данные формы
