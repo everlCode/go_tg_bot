@@ -18,14 +18,14 @@ import (
 )
 
 type GigaChatApi struct {
-	ClientID string
+	ClientID     string
 	ClientSecret string
-	AccessToken AccessToken
+	AccessToken  AccessToken
 }
 
 type AccessToken struct {
 	AccessToken string `json:"access_token"`
-	ExpiresAt   int64    `json:"expires_at"`
+	ExpiresAt   int64  `json:"expires_at"`
 }
 
 type GigaChatRequest struct {
@@ -74,7 +74,7 @@ type GigaChatImageResponse struct {
 
 func NewApi(clientID string, clientSecret string) (*GigaChatApi, error) {
 	gigachadApi := &GigaChatApi{
-		ClientID: clientID,
+		ClientID:     clientID,
 		ClientSecret: clientSecret,
 	}
 	gigachadApi.getAccessToken()
@@ -129,7 +129,7 @@ func (gigaChat *GigaChatApi) getAccessToken() AccessToken {
 }
 
 func (gigaChat GigaChatApi) isExpiredToken() bool {
-	return gigaChat.AccessToken.ExpiresAt < time.Now().Unix()
+	return gigaChat.AccessToken.ExpiresAt < time.Now().UnixMilli()
 }
 
 func (gigaChat GigaChatApi) Send(content string) GigaChatResponse {
