@@ -204,6 +204,9 @@ func (GigaChatApi GigaChatApi) Request(request http.Request) (*http.Response, er
 }
 
 func (gigaChat GigaChatApi) GenerateImage(prompt string) ([]byte, error) {
+	if gigaChat.isExpiredToken() {
+		gigaChat.getAccessToken()
+	}
 	// 1. Запрос на генерацию изображения
 	request := GigaChatImageRequest{
 		Model:        "GigaChat",
